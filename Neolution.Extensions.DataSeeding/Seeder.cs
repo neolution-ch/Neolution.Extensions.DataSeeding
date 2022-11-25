@@ -7,9 +7,9 @@
     using Neolution.Extensions.DataSeeding.Abstractions;
     using Neolution.Extensions.DataSeeding.Internal;
 
-    /// <inheritdoc />
+    /// <inheritdoc cref="ISeeder" />
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1812:AvoidUninstantiatedInternalClasses", Justification = "Resolved as a singleton by DI container")]
-    internal class Seeder : ISeeder
+    internal sealed class Seeder : ISeeder, IDisposable
     {
         /// <summary>
         /// The logger.
@@ -64,7 +64,19 @@
             }
 
             this.logger.LogDebug("All seeds have been seeded!");
+        }
 
+        /// <inheritdoc />
+        public async Task SeedAsync<T>()
+            where T : Seed
+        {
+            var seed = Seeding.Instance.FindSeed<T>();
+            await seed.SeedAsync().ConfigureAwait(false);
+        }
+
+        /// <inheritdoc />
+        public void Dispose()
+        {
             Seeding.Instance.Dispose();
         }
 
