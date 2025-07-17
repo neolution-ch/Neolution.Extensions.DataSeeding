@@ -72,6 +72,23 @@
         }
 
         /// <summary>
+        /// Tests that abstract seeds can be manually executed via <see cref="ISeeder.SeedAsync{T}" />.
+        /// </summary>
+        [Fact]
+        public void AbstractSeedsCanBeManuallyExecuted()
+        {
+            // Arrange
+            var services = this.CreateServiceCollection();
+            services.AddDataSeeding(typeof(AbstractSeedTests).Assembly);
+            var serviceProvider = services.BuildServiceProvider();
+            var seeder = serviceProvider.GetRequiredService<ISeeder>();
+
+            // Act & Assert - This should not throw
+            var seedTask = seeder.SeedAsync<AbstractSeedExample>();
+            seedTask.ShouldNotBeNull();
+        }
+
+        /// <summary>
         /// Creates the service collection.
         /// </summary>
         /// <returns>The <see cref="IServiceCollection"/>.</returns>
