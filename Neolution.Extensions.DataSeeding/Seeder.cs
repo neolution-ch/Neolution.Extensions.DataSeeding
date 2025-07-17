@@ -2,14 +2,15 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Diagnostics.CodeAnalysis;
     using System.Threading.Tasks;
     using Microsoft.Extensions.Logging;
     using Neolution.Extensions.DataSeeding.Abstractions;
     using Neolution.Extensions.DataSeeding.Internal;
 
     /// <inheritdoc cref="ISeeder" />
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1812:AvoidUninstantiatedInternalClasses", Justification = "Resolved as a singleton by DI container")]
-    internal sealed class Seeder : ISeeder, IAsyncDisposable
+    [SuppressMessage("Microsoft.Performance", "CA1812:AvoidUninstantiatedInternalClasses", Justification = "Resolved as a singleton by DI container")]
+    internal sealed class Seeder : ISeeder
     {
         /// <summary>
         /// The logger.
@@ -53,7 +54,7 @@
                 for (var index = 0; index < sortedSeeds.Count; index++)
                 {
                     var seed = sortedSeeds[index];
-                    this.logger.LogTrace($"{index + 1}.\t{seed.GetType().Name}");
+                    this.logger.LogTrace("{Index}.\t{SeedTypeName}", index + 1, seed.GetType().Name);
                 }
             }
 
@@ -74,12 +75,6 @@
             await seed.SeedAsync().ConfigureAwait(false);
         }
 
-        /// <inheritdoc />
-        public async ValueTask DisposeAsync()
-        {
-            await Seeding.Instance.DisposeAsync().ConfigureAwait(false);
-        }
-
         /// <summary>
         /// Logs the wrap tree in a pretty format.
         /// </summary>
@@ -97,7 +92,7 @@
                 seedTypeName = seedTypeName[..^suffix.Length];
             }
 
-            this.logger.LogDebug($"{indent}+- {seedTypeName}");
+            this.logger.LogDebug("{Indent}+- {SeedTypeName}", indent, seedTypeName);
             indent += last ? "   " : "|  ";
 
             for (var i = 0; i < wrap.Wrapped.Count; i++)

@@ -3,7 +3,6 @@
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Logging;
     using Neolution.Extensions.DataSeeding.UnitTests.Fakes;
-    using Neolution.Extensions.DataSeeding.UnitTests.Fakes.MultiTenantSeeds;
     using Shouldly;
     using Xunit;
     using Xunit.Abstractions;
@@ -35,7 +34,7 @@
         {
             // Assign
             var services = this.CreateServiceCollection();
-            services.AddDataSeeding(typeof(TenantsSeed).Assembly);
+            services.AddDataSeeding(typeof(BasicTests).Assembly);
             services.AddTransient<DataInitializerFake>();
             var serviceProvider = services.BuildServiceProvider();
             var dataInitializer = serviceProvider.GetRequiredService<DataInitializerFake>();
@@ -54,7 +53,7 @@
         private IServiceCollection CreateServiceCollection()
         {
             var services = new ServiceCollection();
-            services.AddLogging(builder => builder.AddXUnit(this.testOutputHelper));
+            services.AddLogging(builder => builder.AddXUnit(this.testOutputHelper).SetMinimumLevel(LogLevel.Debug));
             return services;
         }
     }
