@@ -30,7 +30,7 @@
             services.Scan(scan => scan
                 .FromAssemblies(assembly)
                 .AddClasses(classes => classes.AssignableTo<Seed>())
-                .AsSelf()
+                .As<Seed>()
                 .WithTransientLifetime());
         }
     }
