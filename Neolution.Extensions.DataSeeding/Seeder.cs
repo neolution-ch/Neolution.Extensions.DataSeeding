@@ -2,13 +2,14 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Diagnostics.CodeAnalysis;
     using System.Threading.Tasks;
     using Microsoft.Extensions.Logging;
     using Neolution.Extensions.DataSeeding.Abstractions;
     using Neolution.Extensions.DataSeeding.Internal;
 
     /// <inheritdoc cref="ISeeder" />
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1812:AvoidUninstantiatedInternalClasses", Justification = "Resolved as a singleton by DI container")]
+    [SuppressMessage("Microsoft.Performance", "CA1812:AvoidUninstantiatedInternalClasses", Justification = "Resolved as a singleton by DI container")]
     internal sealed class Seeder : ISeeder
     {
         /// <summary>
@@ -53,7 +54,7 @@
                 for (var index = 0; index < sortedSeeds.Count; index++)
                 {
                     var seed = sortedSeeds[index];
-                    this.logger.LogTrace($"{index + 1}.\t{seed.GetType().Name}");
+                    this.logger.LogTrace("{Index}.\t{Name}", index + 1, seed.GetType().Name);
                 }
             }
 
@@ -91,7 +92,7 @@
                 seedTypeName = seedTypeName[..^suffix.Length];
             }
 
-            this.logger.LogDebug($"{indent}+- {seedTypeName}");
+            this.logger.LogDebug("{Indent}+- {SeedTypeName}", indent, seedTypeName);
             indent += last ? "   " : "|  ";
 
             for (var i = 0; i < wrap.Wrapped.Count; i++)

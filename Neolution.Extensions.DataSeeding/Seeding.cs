@@ -71,15 +71,15 @@
             if (logger.IsEnabled(LogLevel.Trace))
             {
                 logger.LogTrace("Scan configured assembly for seeds");
-                logger.LogTrace($"Assembly full name: '{this.seedsAssembly?.FullName}'");
+                logger.LogTrace("Assembly full name: '{SeedsAssemblyFullName}'", this.seedsAssembly.FullName);
             }
 
             // Resolve all seeds that are registered
             this.Seeds = serviceProvider.GetServices<ISeed>().ToList();
             this.seeds = serviceProvider.GetServices<Seed>().ToList();
 
-            logger.LogDebug($"{this.Seeds.Count} seeds have been found and loaded");
-            logger.LogDebug($"Seeding instance ready");
+            logger.LogDebug("{SeedsCount} seeds have been found and loaded", this.Seeds.Count);
+            logger.LogDebug("Seeding instance ready");
         }
 
         /// <summary>
