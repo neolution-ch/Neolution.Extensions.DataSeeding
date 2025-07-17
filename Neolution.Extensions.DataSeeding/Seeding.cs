@@ -78,7 +78,9 @@
             this.Seeds = serviceProvider.GetServices<ISeed>().ToList();
             this.seeds = serviceProvider.GetServices<Seed>().ToList();
 
-            logger.LogDebug("{SeedsCount} seeds have been found and loaded", this.Seeds.Count);
+            logger.LogDebug("{SeedsCount} seeds have been found and loaded", this.Seeds.Count + this.seeds.Count);
+            logger.LogTrace("{SeedCount} ISeed implementations found", this.Seeds.Count);
+            logger.LogTrace("{SeedCount} Seed implementations found", this.seeds.Count);
             logger.LogDebug("Seeding instance ready");
         }
 

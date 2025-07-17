@@ -53,7 +53,7 @@
         private IServiceCollection CreateServiceCollection()
         {
             var services = new ServiceCollection();
-            services.AddLogging(builder => builder.AddXUnit(this.testOutputHelper));
+            services.AddLogging(builder => builder.AddXUnit(this.testOutputHelper).SetMinimumLevel(LogLevel.Debug));
             return services;
         }
     }
