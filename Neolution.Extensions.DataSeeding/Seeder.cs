@@ -54,7 +54,7 @@
                 for (var index = 0; index < sortedSeeds.Count; index++)
                 {
                     var seed = sortedSeeds[index];
-                    this.logger.LogTrace("{Index}.\t{Name}", index + 1, seed.GetType().Name);
+                    this.logger.LogTrace("{Index}.\t{SeedTypeName}", index + 1, seed.GetType().Name);
                 }
             }
 
