@@ -5,22 +5,13 @@
     using Microsoft.Extensions.DependencyInjection;
 
     /// <summary>
-    /// Interface for a scoped service that depends on other scoped services.
-    /// </summary>
-    public interface IFakeScopedServiceWithDependency
-    {
-        /// <summary>
-        /// Performs an async operation that accesses scoped dependencies.
-        /// </summary>
-        /// <returns>A task representing the async operation.</returns>
-        Task<string> PerformScopedOperationAsync();
-    }
-
-    /// <summary>
     /// A scoped service that depends on other scoped services, similar to UserManager.
     /// </summary>
     public class FakeScopedServiceWithDependency : IFakeScopedServiceWithDependency
     {
+        /// <summary>
+        /// The service provider.
+        /// </summary>
         private readonly IServiceProvider serviceProvider;
 
         /// <summary>
