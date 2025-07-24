@@ -3,6 +3,7 @@
     using System;
     using System.Collections.Generic;
     using System.Diagnostics.CodeAnalysis;
+    using System.Linq;
     using System.Threading.Tasks;
     using Microsoft.Extensions.Logging;
     using Neolution.Extensions.DataSeeding.Abstractions;
@@ -31,36 +32,26 @@
         /// <inheritdoc />
         public async Task SeedAsync()
         {
-            this.logger.LogDebug("Determine seeding dependencies and wrap the seeds up accordingly");
-            var wraps = Seeding.Instance.WrapSeeds();
+            this.logger.LogDebug("Resolving seed dependencies using topological sort");
+            var sortedSeeds = Internal.DependencyResolver.ResolveDependencies(Seeding.Instance.Seeds);
 
             if (this.logger.IsEnabled(LogLevel.Debug))
             {
-                this.logger.LogDebug("Resolved dependency tree of the seeds:");
-                for (var index = 0; index < wraps.Count; index++)
-                {
-                    var wrap = wraps[index];
-                    this.LogWrapTree(wrap, index == wrap.Wrapped.Count - 1);
-                }
-            }
-
-            this.logger.LogTrace("Create a list of sorted seeds based on the dependency tree");
-            var sortedSeeds = new List<ISeed>();
-            Seeding.Instance.RecursiveUnwrap(wraps, sortedSeeds);
-
-            if (this.logger.IsEnabled(LogLevel.Trace))
-            {
-                this.logger.LogTrace("The seeds will be seeded in the following order:");
+                this.logger.LogDebug("Dependency resolution completed. Seeds will be executed in the following order:");
                 for (var index = 0; index < sortedSeeds.Count; index++)
                 {
                     var seed = sortedSeeds[index];
-                    this.logger.LogTrace("{Index}.\t{SeedTypeName}", index + 1, seed.GetType().Name);
+                    var dependencies = seed.DependsOnTypes?.Length > 0
+                        ? $" (depends on: {string.Join(", ", seed.DependsOnTypes.Select(t => t.Name))})"
+                        : " (no dependencies)";
+                    this.logger.LogDebug("{Index}.\t{SeedTypeName}{Dependencies}", index + 1, seed.GetType().Name, dependencies);
                 }
             }
 
             this.logger.LogDebug("Start seeding...");
             foreach (var seed in sortedSeeds)
             {
+                this.logger.LogTrace("Executing seed: {SeedTypeName}", seed.GetType().Name);
                 await seed.SeedAsync().ConfigureAwait(false);
             }
 
