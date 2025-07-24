@@ -3,6 +3,7 @@
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Logging;
     using Neolution.Extensions.DataSeeding.UnitTests.Fakes;
+    using Neolution.Extensions.DataSeeding.UnitTests.Fakes.Services;
     using Shouldly;
     using Xunit;
     using Xunit.Abstractions;

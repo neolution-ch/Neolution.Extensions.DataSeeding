@@ -3,6 +3,7 @@
     using System.Threading.Tasks;
     using Microsoft.Extensions.Logging;
     using Neolution.Extensions.DataSeeding.Abstractions;
+    using Neolution.Extensions.DataSeeding.UnitTests.Fakes.Services;
 
     /// <inheritdoc />
     public class ApplicationSettingsSeed : ISeed
