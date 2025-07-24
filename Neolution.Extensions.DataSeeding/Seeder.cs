@@ -74,8 +74,7 @@
                 var scopedSeeds = new List<ISeed>();
                 foreach (var seed in sortedSeeds)
                 {
-                    var scopedSeed = scope.ServiceProvider.GetRequiredService(seed.GetType()) as ISeed;
-                    if (scopedSeed != null)
+                    if (scope.ServiceProvider.GetRequiredService(seed.GetType()) is ISeed scopedSeed)
                     {
                         scopedSeeds.Add(scopedSeed);
                     }
