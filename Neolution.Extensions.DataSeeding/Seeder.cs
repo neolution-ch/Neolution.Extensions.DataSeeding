@@ -67,23 +67,17 @@
 
             this.logger.LogDebug("Start seeding...");
 
-            // Create a scope to handle scoped dependencies
+            // Create a scope to handle scoped dependencies and resolve fresh seeds
             using (var scope = this.serviceProvider.CreateScope())
             {
-                // Resolve seeds within the scope to handle scoped dependencies
-                var scopedSeeds = new List<ISeed>();
+                // Resolve fresh instances of seeds within the scope to handle scoped dependencies
                 foreach (var seed in sortedSeeds)
                 {
-                    if (scope.ServiceProvider.GetRequiredService(seed.GetType()) is ISeed scopedSeed)
-                    {
-                        scopedSeeds.Add(scopedSeed);
-                    }
-                }
-
-                // Execute the scoped seeds
-                foreach (var seed in scopedSeeds)
-                {
-                    await seed.SeedAsync().ConfigureAwait(false);
+                    // Get a fresh instance of the seed from the scoped service provider
+                    // Use the concrete type to ensure proper resolution
+                    var seedType = seed.GetType();
+                    var scopedSeed = (ISeed)scope.ServiceProvider.GetRequiredService(seedType);
+                    await scopedSeed.SeedAsync().ConfigureAwait(false);
                 }
             }
 

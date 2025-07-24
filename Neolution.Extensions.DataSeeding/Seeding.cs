@@ -74,9 +74,13 @@
                 logger.LogTrace("Assembly full name: '{SeedsAssemblyFullName}'", this.seedsAssembly.FullName);
             }
 
-            // Resolve all seeds that are registered
-            this.Seeds = serviceProvider.GetServices<ISeed>().ToList();
-            this.seeds = serviceProvider.GetServices<Seed>().ToList();
+            // Resolve all seeds that are registered (temporarily for dependency analysis)
+            // Use a temporary scope to handle scoped dependencies during analysis
+            using (var tempScope = serviceProvider.CreateScope())
+            {
+                this.Seeds = tempScope.ServiceProvider.GetServices<ISeed>().ToList();
+                this.seeds = tempScope.ServiceProvider.GetServices<Seed>().ToList();
+            } // Dispose the temporary scope - seeds will be resolved fresh during execution
 
             logger.LogDebug("{SeedsCount} seeds have been found and loaded", this.Seeds.Count + this.seeds.Count);
             logger.LogTrace("{SeedCount} ISeed implementations found", this.Seeds.Count);

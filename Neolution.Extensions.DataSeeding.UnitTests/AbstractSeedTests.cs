@@ -103,6 +103,9 @@
             services.AddScoped<IFakeScopedService, FakeScopedService>();
             services.AddTransient<IFakeTransientService, FakeTransientService>();
 
+            // Register the scoped service with dependency to test UserManager-like scenarios
+            services.AddScoped<IFakeScopedServiceWithDependency, FakeScopedServiceWithDependency>();
+
             return services;
         }
     }
