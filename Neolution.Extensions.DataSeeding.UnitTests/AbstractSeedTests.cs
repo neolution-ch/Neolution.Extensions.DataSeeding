@@ -96,6 +96,12 @@
         {
             var services = new ServiceCollection();
             services.AddLogging(builder => builder.AddXUnit(this.testOutputHelper));
+
+            // Register fake services with different lifetimes to test scoped service injection
+            services.AddSingleton<IFakeSingletonService, FakeSingletonService>();
+            services.AddScoped<IFakeScopedService, FakeScopedService>();
+            services.AddTransient<IFakeTransientService, FakeTransientService>();
+
             return services;
         }
     }

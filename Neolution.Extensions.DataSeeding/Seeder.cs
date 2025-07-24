@@ -4,6 +4,7 @@
     using System.Collections.Generic;
     using System.Diagnostics.CodeAnalysis;
     using System.Threading.Tasks;
+    using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Logging;
     using Neolution.Extensions.DataSeeding.Abstractions;
     using Neolution.Extensions.DataSeeding.Internal;
@@ -18,6 +19,11 @@
         private readonly ILogger<Seeder> logger;
 
         /// <summary>
+        /// The service provider.
+        /// </summary>
+        private readonly IServiceProvider serviceProvider;
+
+        /// <summary>
         /// Initializes a new instance of the <see cref="Seeder" /> class.
         /// </summary>
         /// <param name="serviceProvider">The service provider.</param>
@@ -25,6 +31,7 @@
         public Seeder(IServiceProvider serviceProvider, ILogger<Seeder> logger)
         {
             this.logger = logger;
+            this.serviceProvider = serviceProvider;
             Seeding.Instance.UseServiceProvider(serviceProvider);
         }
 
@@ -59,9 +66,26 @@
             }
 
             this.logger.LogDebug("Start seeding...");
-            foreach (var seed in sortedSeeds)
+
+            // Create a scope to handle scoped dependencies
+            using (var scope = this.serviceProvider.CreateScope())
             {
-                await seed.SeedAsync().ConfigureAwait(false);
+                // Resolve seeds within the scope to handle scoped dependencies
+                var scopedSeeds = new List<ISeed>();
+                foreach (var seed in sortedSeeds)
+                {
+                    var scopedSeed = scope.ServiceProvider.GetRequiredService(seed.GetType()) as ISeed;
+                    if (scopedSeed != null)
+                    {
+                        scopedSeeds.Add(scopedSeed);
+                    }
+                }
+
+                // Execute the scoped seeds
+                foreach (var seed in scopedSeeds)
+                {
+                    await seed.SeedAsync().ConfigureAwait(false);
+                }
             }
 
             this.logger.LogDebug("All seeds have been seeded!");
