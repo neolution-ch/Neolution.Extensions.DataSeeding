@@ -1,10 +1,11 @@
-﻿namespace Neolution.Extensions.DataSeeding
+namespace Neolution.Extensions.DataSeeding
 {
     using System;
     using System.Collections.Generic;
     using System.Diagnostics.CodeAnalysis;
     using System.Linq;
     using System.Threading.Tasks;
+    using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Logging;
     using Neolution.Extensions.DataSeeding.Abstractions;
     using Neolution.Extensions.DataSeeding.Internal;
@@ -19,6 +20,11 @@
         private readonly ILogger<Seeder> logger;
 
         /// <summary>
+        /// The service provider.
+        /// </summary>
+        private readonly IServiceProvider serviceProvider;
+
+        /// <summary>
         /// Initializes a new instance of the <see cref="Seeder" /> class.
         /// </summary>
         /// <param name="serviceProvider">The service provider.</param>
@@ -26,6 +32,7 @@
         public Seeder(IServiceProvider serviceProvider, ILogger<Seeder> logger)
         {
             this.logger = logger;
+            this.serviceProvider = serviceProvider;
             Seeding.Instance.UseServiceProvider(serviceProvider);
         }
 
@@ -49,10 +56,20 @@
             }
 
             this.logger.LogDebug("Start seeding...");
-            foreach (var seed in sortedSeeds)
+
+            // Create a scope to handle scoped dependencies and resolve fresh seeds
+            using (var scope = this.serviceProvider.CreateScope())
             {
-                this.logger.LogTrace("Executing seed: {SeedTypeName}", seed.GetType().Name);
-                await seed.SeedAsync().ConfigureAwait(false);
+                // Resolve fresh instances of seeds within the scope to handle scoped dependencies
+                foreach (var seed in sortedSeeds)
+                {
+                    // Get a fresh instance of the seed from the scoped service provider
+                    // Use the concrete type to ensure proper resolution
+                    var seedType = seed.GetType();
+                    var scopedSeed = (ISeed)scope.ServiceProvider.GetRequiredService(seedType);
+                    this.logger.LogTrace("Executing seed: {SeedTypeName}", scopedSeed.GetType().Name);
+                    await scopedSeed.SeedAsync().ConfigureAwait(false);
+                }
             }
 
             this.logger.LogDebug("All seeds have been seeded!");

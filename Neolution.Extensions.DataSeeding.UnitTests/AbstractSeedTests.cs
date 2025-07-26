@@ -1,4 +1,4 @@
-﻿namespace Neolution.Extensions.DataSeeding.UnitTests
+namespace Neolution.Extensions.DataSeeding.UnitTests
 {
     using System.Linq;
     using Microsoft.Extensions.DependencyInjection;
@@ -6,6 +6,7 @@
     using Neolution.Extensions.DataSeeding.Abstractions;
     using Neolution.Extensions.DataSeeding.UnitTests.Fakes;
     using Neolution.Extensions.DataSeeding.UnitTests.Fakes.MultiTenantSeeds;
+    using Neolution.Extensions.DataSeeding.UnitTests.Fakes.Services;
     using Shouldly;
     using Xunit;
     using Xunit.Abstractions;
@@ -96,6 +97,15 @@
         {
             var services = new ServiceCollection();
             services.AddLogging(builder => builder.AddXUnit(this.testOutputHelper));
+
+            // Register fake services with different lifetimes to test scoped service injection
+            services.AddSingleton<IFakeSingletonService, FakeSingletonService>();
+            services.AddScoped<IFakeScopedService, FakeScopedService>();
+            services.AddTransient<IFakeTransientService, FakeTransientService>();
+
+            // Register the scoped service with dependency to test UserManager-like scenarios
+            services.AddScoped<IFakeScopedServiceWithDependency, FakeScopedServiceWithDependency>();
+
             return services;
         }
     }
