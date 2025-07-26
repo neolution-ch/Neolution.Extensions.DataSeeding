@@ -1,4 +1,4 @@
-namespace Neolution.Extensions.DataSeeding
+﻿namespace Neolution.Extensions.DataSeeding
 {
     using System;
     using System.Collections.Generic;
@@ -74,13 +74,14 @@ namespace Neolution.Extensions.DataSeeding
                 logger.LogTrace("Assembly full name: '{SeedsAssemblyFullName}'", this.seedsAssembly.FullName);
             }
 
-            // Resolve all seeds that are registered (temporarily for dependency analysis)
-            // Use a temporary scope to handle scoped dependencies during analysis
             using (var tempScope = serviceProvider.CreateScope())
             {
-                this.Seeds = tempScope.ServiceProvider.GetServices<ISeed>().ToList();
-                this.seeds = tempScope.ServiceProvider.GetServices<Seed>().ToList();
-            } // Dispose the temporary scope - seeds will be resolved fresh during execution
+                var allSeeds = tempScope.ServiceProvider.GetServices<ISeed>().ToList();
+                this.Seeds = allSeeds.Where(seed => seed.GetType().Assembly == this.seedsAssembly).ToList();
+
+                var allBasicSeeds = tempScope.ServiceProvider.GetServices<Seed>().ToList();
+                this.seeds = allBasicSeeds.Where(seed => seed.GetType().Assembly == this.seedsAssembly).ToList();
+            }
 
             logger.LogDebug("{SeedsCount} seeds have been found and loaded", this.Seeds.Count + this.seeds.Count);
             logger.LogTrace("{SeedCount} ISeed implementations found", this.Seeds.Count);
