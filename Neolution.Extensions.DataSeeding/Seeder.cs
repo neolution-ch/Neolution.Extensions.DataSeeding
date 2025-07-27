@@ -1,4 +1,4 @@
-﻿namespace Neolution.Extensions.DataSeeding
+namespace Neolution.Extensions.DataSeeding
 {
     using System;
     using System.Threading.Tasks;

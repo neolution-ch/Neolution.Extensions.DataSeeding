@@ -1,4 +1,4 @@
-﻿namespace Neolution.Extensions.DataSeeding.UnitTests.Fakes.MultiTenantSeeds
+namespace Neolution.Extensions.DataSeeding.UnitTests.Fakes.MultiTenantSeeds
 {
     using System.Threading.Tasks;
     using Microsoft.Extensions.Logging;

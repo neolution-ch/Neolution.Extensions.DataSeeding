@@ -1,4 +1,4 @@
-﻿namespace Neolution.Extensions.DataSeeding.Core.UnitTests
+namespace Neolution.Extensions.DataSeeding.Core.UnitTests
 {
     using System.Linq;
     using Microsoft.Extensions.DependencyInjection;

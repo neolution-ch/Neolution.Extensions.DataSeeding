@@ -1,4 +1,4 @@
-﻿namespace Neolution.Extensions.DataSeeding.UnitTests
+namespace Neolution.Extensions.DataSeeding.UnitTests
 {
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Logging;
