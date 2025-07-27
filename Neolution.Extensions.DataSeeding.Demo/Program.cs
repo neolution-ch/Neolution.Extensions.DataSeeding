@@ -1,8 +1,8 @@
 ﻿namespace Neolution.Extensions.DataSeeding.Demo
 {
     using System;
+    using System.Threading.Tasks;
     using Neolution.DotNet.Console;
-    using Neolution.DotNet.Console.Abstractions;
     using NLog;
     using NLog.Extensions.Logging;
 
@@ -15,14 +15,19 @@
         /// Defines the entry point of the application.
         /// </summary>
         /// <param name="args">The arguments.</param>
-        public static void Main(string[] args)
+        /// <returns>A task representing the asynchronous operation.</returns>
+        public static async Task Main(string[] args)
         {
-            var console = CreateConsoleAppBuilder(args).AsyncBuild();
-            var logger = LogManager.Setup().LoadConfigurationFromSection(console.Configuration).GetCurrentClassLogger();
+            var builder = DotNetConsole.CreateDefaultBuilder(args);
+            var logger = LogManager.Setup().LoadConfigurationFromSection(builder.Configuration).GetCurrentClassLogger();
 
             try
             {
-                console.RunAsync();
+                var startup = new Startup();
+                startup.ConfigureServices(builder.Services);
+
+                var console = builder.Build();
+                await console.RunAsync();
             }
             catch (Exception ex)
             {
@@ -35,17 +40,6 @@
                 // Ensure to flush and stop internal timers/threads before application-exit (Avoid segmentation fault on Linux)
                 LogManager.Shutdown();
             }
-        }
-
-        /// <summary>
-        /// Creates the console application builder.
-        /// </summary>
-        /// <param name="args">The arguments.</param>
-        /// <returns>The console app builder.</returns>
-        private static IConsoleAppBuilder CreateConsoleAppBuilder(string[] args)
-        {
-            return DotNetConsole.CreateDefaultBuilder(args)
-                .UseCompositionRoot<Startup>();
         }
     }
 }

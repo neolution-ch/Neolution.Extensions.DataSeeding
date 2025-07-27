@@ -6,21 +6,21 @@
     using Neolution.Extensions.DataSeeding.Abstractions;
 
     /// <summary>
-    /// Creates user roles for the CMS application
-    /// Depends on system configuration being set up first
+    /// Creates content categories for organizing articles and pages
+    /// Depends on system configuration for category settings
     /// </summary>
-    public class UserRolesSeed : ISeed
+    public class CategoriesSeed : ISeed
     {
         /// <summary>
         /// The logger
         /// </summary>
-        private readonly ILogger<UserRolesSeed> logger;
+        private readonly ILogger<CategoriesSeed> logger;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="UserRolesSeed"/> class.
+        /// Initializes a new instance of the <see cref="CategoriesSeed"/> class.
         /// </summary>
         /// <param name="logger">The logger.</param>
-        public UserRolesSeed(ILogger<UserRolesSeed> logger)
+        public CategoriesSeed(ILogger<CategoriesSeed> logger)
         {
             this.logger = logger;
         }
@@ -31,9 +31,9 @@
         /// <inheritdoc />
         public async Task SeedAsync()
         {
-            this.logger.LogInformation("Creating user roles: Administrator, Editor, Contributor, Subscriber...");
-            await Task.Delay(100);
-            this.logger.LogInformation("User roles created successfully");
+            this.logger.LogInformation("Creating content categories: News, Blog, Products, About...");
+            await Task.Delay(120);
+            this.logger.LogInformation("Content categories created successfully");
         }
     }
 }

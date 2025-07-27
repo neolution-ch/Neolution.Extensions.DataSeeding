@@ -1,6 +1,7 @@
 ﻿namespace Neolution.Extensions.DataSeeding.Demo.Commands.Init
 {
     using System;
+    using System.Threading;
     using System.Threading.Tasks;
     using Microsoft.Extensions.Logging;
     using Neolution.DotNet.Console.Abstractions;
@@ -9,7 +10,7 @@
     /// <summary>
     /// The data initializer.
     /// </summary>
-    public class InitCommand : IAsyncConsoleAppCommand<InitOptions>
+    public class InitCommand : IDotNetConsoleCommand<InitOptions>
     {
         /// <summary>
         /// The logger
@@ -33,31 +34,24 @@
         }
 
         /// <inheritdoc />
-        public Task RunAsync(InitOptions options)
+        public Task RunAsync(InitOptions options, CancellationToken cancellationToken)
         {
             if (options is null)
             {
                 throw new ArgumentNullException(nameof(options));
             }
 
-            return this.RunInternalAsync();
-        }
+            return RunInternalAsync();
 
-        /// <summary>
-        /// Runs the command asynchronously.
-        /// </summary>
-        /// <returns>An awaitable <see cref="Task"/>.</returns>
-        private async Task RunInternalAsync()
-        {
-            this.logger.LogInformation("Start data initializer...");
+            async Task RunInternalAsync()
+            {
+                this.logger.LogInformation("Start data initializer...");
 
-            // Automatic seeding
-            await this.seeder.SeedAsync().ConfigureAwait(true);
+                // Automatic seeding
+                await this.seeder.SeedAsync();
 
-            // Manual seeding
-            await this.seeder.SeedAsync<MySeed>().ConfigureAwait(true);
-
-            this.logger.LogInformation("Data initializer finished!");
+                this.logger.LogInformation("Data initializer finished!");
+            }
         }
     }
 }

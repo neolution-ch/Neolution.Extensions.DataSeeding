@@ -5,7 +5,10 @@
     using Microsoft.Extensions.Logging;
     using Neolution.Extensions.DataSeeding.Abstractions;
 
-    /// <inheritdoc />
+    /// <summary>
+    /// Creates initial administrator and sample users
+    /// Depends on user roles being available
+    /// </summary>
     public class UsersSeed : ISeed
     {
         /// <summary>
@@ -23,13 +26,14 @@
         }
 
         /// <inheritdoc />
-        public Type DependsOnType => typeof(TenantsSeed);
+        public Type DependsOnType => typeof(UserRolesSeed);
 
         /// <inheritdoc />
-        public Task SeedAsync()
+        public async Task SeedAsync()
         {
-            this.logger.LogInformation($"Seed: {nameof(UsersSeed)}");
-            return Task.CompletedTask;
+            this.logger.LogInformation("Creating initial users: admin@example.com, editor@example.com...");
+            await Task.Delay(180);
+            this.logger.LogInformation("Initial users created and assigned to roles");
         }
     }
 }

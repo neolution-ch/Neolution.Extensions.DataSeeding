@@ -30,12 +30,6 @@
         {
             this.logger.LogDebug("Resolving seed dependencies using topological sort");
 
-            if (this.logger.IsEnabled(LogLevel.Debug))
-            {
-                var visualization = Internal.DependencyResolver.CreateDependencyGraphVisualization(Seeding.Instance.Seeds);
-                this.logger.LogDebug("Dependency Graph Visualization:{NewLine}{Visualization}", Environment.NewLine, visualization);
-            }
-
             var sortedSeeds = Internal.DependencyResolver.ResolveDependencies(Seeding.Instance.Seeds);
 
             if (this.logger.IsEnabled(LogLevel.Debug))
@@ -45,7 +39,7 @@
                 {
                     var seed = sortedSeeds[index];
                     var dependencies = GetDependencyDescription(seed);
-                    this.logger.LogDebug("{Index}.\t{SeedTypeName}{Dependencies}", index + 1, seed.GetType().Name, dependencies);
+                    this.logger.LogDebug("{Index}. {SeedTypeName}{Dependencies}", index + 1, seed.GetType().Name, dependencies);
                 }
             }
 

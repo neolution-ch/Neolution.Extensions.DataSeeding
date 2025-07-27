@@ -1,40 +1,38 @@
 # DataSeeding
 
-## Introduction
+## What's this about?
 
 From the [database seeding](https://en.wikipedia.org/wiki/Database_seeding) article in Wikipedia:
+
 > Database seeding is populating a database with an initial set of data. It's common to load seed data such as initial user accounts or dummy data upon initial setup of an application.
 
-The code needed to create an initial state of data for an application can get overwhelmingly large, even for smaller applications. This means that the source code file responsible for creating, generating, initializing, loading, transforming (...) your data, will eventually end up having thousands of lines of code and tons of different dependencies. When not properly organized, this could create maintainability issues for your application.
-
-This library aims to help developers to divide the whole data seeding logic of an application into small chunks of logic with robust dependency management and proper service lifetime handling.
+We've all been there - your data seeding code starts simple but grows into a monster file with thousands of lines and complex dependencies. This library helps you split that mess into manageable chunks with proper dependency handling.
 
 ## Key Features
 
-- **Multi-Dependency Support**: Seeds can depend on multiple other seeds using the `DependsOnTypes` property
-- **Simplified Single Dependency**: Use `DependsOnType` for cleaner syntax when you only have one dependency
-- **Pretty-Print Dependency Visualization**: Visual logging of dependency relationships for easier debugging
-- **Circular Dependency Detection**: Automatic detection of circular dependencies with clear error messages and cycle visualization
-- **Advanced Scoped Service Support**: Robust handling of scoped dependencies with proper lifetime management
-- **Topological Sorting**: Intelligent dependency resolution using Kahn's algorithm for optimal execution order  
-- **Service Lifetime Safety**: Prevents common DI issues like ObjectDisposedException and scope validation errors
-- **Abstract Seed Support**: Full support for both `ISeed` interface and `Seed` abstract class implementations
+- **Multi-Dependency Support**: Seeds can depend on multiple other seeds using `DependsOnTypes`
+- **Single Dependency**: Use `DependsOnType` for simpler syntax when you only have one dependency  
+- **Circular Dependency Detection**: Catches circular dependencies with clear error messages
+- **Scoped Service Support**: Proper handling of scoped dependencies with lifetime management
+- **Topological Sorting**: Dependency resolution using Kahn's algorithm for execution order
+- **Service Lifetime Safety**: Prevents common DI issues like ObjectDisposedException
+- **Abstract Seed Support**: Support for both `ISeed` interface and `Seed` abstract class (being phased out)
 
-## Getting Started
+## Quick Start
 
-### Add the functionality to the dependency injection container
+### Add to dependency injection
 
-For Microsoft Dependency Injection, there is already an extension method built in:
+For Microsoft Dependency Injection:
 
 ```csharp
 services.AddDataSeeding(typeof(Startup).Assembly);
 ```
 
-This configures DataSeeding to scan the passed assembly to look for `ISeed` implementations. All found implementations will then prepared and properly ordered for the data seeding.
+This scans the assembly for `ISeed` implementations and prepares them for ordered execution.
 
 ### The `ISeed` interface
 
-The class that contains a chunk of the data seeding logic is called **seed**. To make the library pick up your seeds, they have to implement `ISeed` interface.
+Create seeds by implementing the `ISeed` interface:
 
 ```csharp
 public class UserSeed : ISeed
@@ -48,21 +46,21 @@ public class UserSeed : ISeed
 }
 ```
 
-In the `SeedAsync()` method you can add your data seeding logic. The seed will be instantiated by the dependency injection container, so you can use the constructor to inject services, including scoped services.
+Seeds are instantiated by the dependency injection container, so you can inject services in the constructor, including scoped services.
 
 ## Dependency Management
 
-### Multi-Dependencies
+### Multiple Dependencies
 
-Use the `DependsOnTypes` property to specify multiple dependencies:
+Use `DependsOnTypes` to specify multiple dependencies:
 
 ```csharp
 public Type[] DependsOnTypes => new[] { typeof(TenantSeed), typeof(RoleSeed) };
 ```
 
-### Single Dependency (Simplified Syntax)
+### Single Dependency
 
-For seeds that depend on only one other seed, you can use the cleaner `DependsOnType` property:
+For seeds with only one dependency, use `DependsOnType`:
 
 ```csharp
 public class UserSeed : ISeed
@@ -77,18 +75,13 @@ public class UserSeed : ISeed
 }
 ```
 
-### Dependency Priority Order
+### Dependency Priority
 
-The dependency resolver supports multiple ways to declare dependencies with the following priority order:
-
-1. **DependsOnTypes** (highest priority) - For multiple dependencies
-2. **DependsOnType** (medium priority) - For single dependency
-
-If both properties are specified, `DependsOnTypes` takes precedence.
+If both properties are specified, `DependsOnTypes` takes precedence over `DependsOnType`.
 
 ### Scoped Service Injection
 
-The library provides **enterprise-grade scoped service support** with proper lifecycle management:
+The library handles scoped services properly:
 
 ```csharp
 public class UserSeed : ISeed
@@ -109,23 +102,23 @@ public class UserSeed : ISeed
 
     public async Task SeedAsync()
     {
-        // Scoped services are properly injected and disposed
         var user = new User { UserName = "admin" };
         await this.userManager.CreateAsync(user, "Password123!");
     }
 }
 ```
 
-**Key Benefits:**
+**Benefits:**
 
-- **Fresh Scope Creation**: Each seeding operation uses a fresh DI scope, ensuring proper service isolation
-- **Automatic Disposal**: Scoped services are automatically disposed after each seed execution
-- **Dependency Analysis Safety**: Seeds are analyzed using temporary scopes that don't interfere with execution
-- **No ObjectDisposedException**: Robust scope management prevents common disposal-related errors
+- Each seed gets a fresh DI scope
+- Scoped services are automatically disposed after execution
+- Prevents ObjectDisposedException and scope validation errors
 
-### The `Seed` Abstract Class
+### The `Seed` Abstract Class (Being Deprecated)
 
-For seeds that require manual execution or complex inheritance scenarios, you can inherit from the abstract `Seed` class:
+> **⚠️ Deprecation Notice**: The abstract `Seed` class is being phased out and will be removed in a future release. New code should use the `ISeed` interface instead. We recommend migrating existing seeds to `ISeed` for better testability and cleaner dependency injection.
+
+For legacy seeds that need manual execution, inherit from the abstract `Seed` class:
 
 ```csharp
 public class ManualSeed : Seed
@@ -150,7 +143,7 @@ await seeder.SeedAsync<ManualSeed>();
 
 ### The `ISeeder` interface
 
-The `ISeeder` interface can be resolved from the service provider. It contains the logic to find all seeds in a specified assembly and seed them in an appropriate order.
+Resolve `ISeeder` from the service provider to execute seeds:
 
 ```csharp
 public class DataInitializer
@@ -169,42 +162,14 @@ public class DataInitializer
 }
 ```
 
-## Advanced Features
-
-### Pretty-Print Dependency Visualization
-
-The seeder automatically logs a visual representation of dependency relationships to help debug complex dependency trees:
-
-```text
-Dependency Graph:
-================
-◦ TenantSeed (no dependencies)
-◦ RoleSeed (no dependencies)
-◦ UserSeed
-  └─ depends on: TenantSeed
-◦ PermissionSeed
-  └─ depends on: RoleSeed
-◦ UserPermissionSeed
-  └─ depends on: UserSeed
-  └─ depends on: PermissionSeed
-
-Execution Order (topologically sorted):
-=======================================
-1. TenantSeed
-2. RoleSeed
-3. UserSeed
-4. PermissionSeed
-5. UserPermissionSeed
-```
-
-This visualization is automatically logged when seeding runs, making it easy to understand the dependency relationships and execution order.
+## Features
 
 ### Circular Dependency Detection
 
-The library automatically detects circular dependencies of any complexity and provides detailed error messages:
+The library detects circular dependencies and throws clear error messages:
 
 ```csharp
-// This will throw an InvalidOperationException with details about the circular dependency
+// This will throw an InvalidOperationException
 public class SeedA : ISeed 
 {
     public Type[] DependsOnTypes => new[] { typeof(SeedB) };
@@ -213,25 +178,24 @@ public class SeedA : ISeed
 
 public class SeedB : ISeed 
 {
-    public Type[] DependsOnTypes => new[] { typeof(SeedA) }; // Circular dependency!
+    public Type[] DependsOnTypes => new[] { typeof(SeedA) }; // Circular!
     // ...
 }
 ```
 
-The system detects:
+Detects all types of cycles:
 
 - Simple cycles: A → B → A
-- Complex cycles: A → B → C → A
+- Complex cycles: A → B → C → A  
 - Multi-level cycles: A → B → C → D → A
 
-When circular dependencies are detected, a detailed error message is logged showing the complete cycle path.
+### Complex Dependencies
 
-### Complex Dependency Scenarios
+Seeds can have multiple dependencies:
 
 ```csharp
 public class ComplexSeed : ISeed
 {
-    // This seed depends on multiple foundation seeds
     public Type[] DependsOnTypes => new[] 
     { 
         typeof(TenantSeed), 
@@ -239,74 +203,10 @@ public class ComplexSeed : ISeed
         typeof(PermissionSeed) 
     };
 
-    // Will only execute after ALL dependencies are completed
+    // Executes only after ALL dependencies complete
     public async Task SeedAsync() { /* ... */ }
 }
 ```
-
-### Scoped Service Lifecycle Management
-
-The library implements robust scoped service handling to prevent common DI pitfalls:
-
-```csharp
-public class DatabaseSeed : ISeed
-{
-    private readonly ApplicationDbContext context;
-    private readonly UserManager<User> userManager;
-
-    public DatabaseSeed(ApplicationDbContext context, UserManager<User> userManager)
-    {
-        this.context = context;
-        this.userManager = userManager;
-    }
-
-    public async Task SeedAsync()
-    {
-        // Both context and userManager are fresh instances within their own scope
-        // They will be properly disposed when this seed completes
-        var user = new User { UserName = "admin" };
-        await this.userManager.CreateAsync(user);
-        await this.context.SaveChangesAsync();
-    }
-}
-```
-
-**Lifecycle Benefits:**
-
-- **Scope Isolation**: Each seed gets its own DI scope with fresh service instances
-- **Memory Efficiency**: Services are disposed immediately after each seed completion
-- **Transaction Safety**: Database contexts and other scoped services maintain proper transaction boundaries
-- **Error Prevention**: Eliminates ObjectDisposedException and scope validation errors
-
-### Execution Order and Dependency Visualization
-
-The library provides comprehensive logging of dependency resolution and execution order. The dependency visualization is automatically logged when seeding runs, showing both the dependency graph and the resolved execution order:
-
-```text
-[Info] Dependency Graph:
-[Info] ================
-[Info] ◦ TenantSeed (no dependencies)
-[Info] ◦ RoleSeed (no dependencies) 
-[Info] ◦ PermissionSeed
-[Info]   └─ depends on: RoleSeed
-[Info] ◦ UserSeed
-[Info]   └─ depends on: TenantSeed
-[Info]   └─ depends on: RoleSeed
-[Info] ◦ ComplexSeed
-[Info]   └─ depends on: TenantSeed
-[Info]   └─ depends on: RoleSeed
-[Info]   └─ depends on: PermissionSeed
-[Info] 
-[Info] Execution Order (topologically sorted):
-[Info] =======================================
-[Info] 1. TenantSeed
-[Info] 2. RoleSeed
-[Info] 3. PermissionSeed
-[Info] 4. UserSeed
-[Info] 5. ComplexSeed
-```
-
-This makes it easy to understand and debug complex dependency chains.
 
 ## Example Usage
 
@@ -321,19 +221,19 @@ public class UserRolesSeed : ISeed
     }
 }
 
-// Seed that depends on UserRolesSeed (using simplified syntax)
+// Single dependency
 public class UsersSeed : ISeed
 {
     public Type? DependsOnType => typeof(UserRolesSeed);
     
     public Task SeedAsync()
     {
-        // Seed users (requires roles to exist first)
+        // Seed users (requires roles first)
         return Task.CompletedTask;
     }
 }
 
-// Seed with multiple dependencies
+// Multiple dependencies
 public class UserPermissionsSeed : ISeed
 {
     public Type[] DependsOnTypes => new[] 
@@ -350,6 +250,6 @@ public class UserPermissionsSeed : ISeed
 }
 ```
 
-## Samples
+## Demo
 
-Check out the sample console application and the comprehensive unit tests in the repository for more examples and usage patterns.
+Check out the [demo project](./Neolution.Extensions.DataSeeding.Demo) for a complete CMS seeding example with 13 interconnected seeds.

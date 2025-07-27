@@ -6,8 +6,8 @@
     using Neolution.Extensions.DataSeeding.Abstractions;
 
     /// <summary>
-    /// Seed for basic system configuration that must run after database setup
-    /// Extended to demonstrate dependency chaining
+    /// Sets up basic system configuration and application settings
+    /// Depends on database migration being completed first
     /// </summary>
     public class SystemConfigurationSeed : ISeed
     {
@@ -26,19 +26,14 @@
         }
 
         /// <inheritdoc />
-        public Type[] DependsOnTypes => new[]
-        {
-            typeof(DatabaseConfigurationSeed),
-        };
-
-        /// <inheritdoc />
-        public Type DependsOnType => null;
+        public Type DependsOnType => typeof(DatabaseMigrationSeed);
 
         /// <inheritdoc />
         public async Task SeedAsync()
         {
-            this.logger.LogInformation("Seeding system configuration: API settings, cache policies, security rules, timezone, locale");
-            await Task.Delay(100).ConfigureAwait(false);
+            this.logger.LogInformation("Configuring system settings: site name, timezone, locale, email settings...");
+            await Task.Delay(150);
+            this.logger.LogInformation("System configuration completed");
         }
     }
 }
