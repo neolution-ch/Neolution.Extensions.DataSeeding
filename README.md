@@ -10,13 +10,12 @@ We've all been there - your data seeding code starts simple but grows into a mon
 
 ## Key Features
 
-- **Multi-Dependency Support**: Seeds can depend on multiple other seeds using `DependsOnTypes`
-- **Single Dependency**: Use `DependsOnType` for simpler syntax when you only have one dependency  
+- **Attribute-Based Dependencies**: Clean syntax using `[DependsOn(typeof(...))]` attributes
+- **Multi-Dependency Support**: Seeds can depend on multiple other seeds
 - **Circular Dependency Detection**: Catches circular dependencies with clear error messages
 - **Scoped Service Support**: Proper handling of scoped dependencies with lifetime management
 - **Topological Sorting**: Dependency resolution using Kahn's algorithm for execution order
 - **Service Lifetime Safety**: Prevents common DI issues like ObjectDisposedException
-- **Abstract Seed Support**: Support for both `ISeed` interface and `Seed` abstract class (being phased out)
 
 ## Quick Start
 
@@ -32,13 +31,12 @@ This scans the assembly for `ISeed` implementations and prepares them for ordere
 
 ### The `ISeed` interface
 
-Create seeds by implementing the `ISeed` interface:
+Create seeds by implementing the `ISeed` interface and using the `[DependsOn]` attribute to declare dependencies:
 
 ```csharp
+[DependsOn(typeof(TenantSeed), typeof(RoleSeed))]
 public class UserSeed : ISeed
 {
-    public Type[] DependsOnTypes => new[] { typeof(TenantSeed), typeof(RoleSeed) };
-
     public async Task SeedAsync()
     {
         // Your seeding logic here
@@ -50,23 +48,14 @@ Seeds are instantiated by the dependency injection container, so you can inject 
 
 ## Dependency Management
 
-### Multiple Dependencies
+### Defining Dependencies
 
-Use `DependsOnTypes` to specify multiple dependencies:
-
-```csharp
-public Type[] DependsOnTypes => new[] { typeof(TenantSeed), typeof(RoleSeed) };
-```
-
-### Single Dependency
-
-For seeds with only one dependency, use `DependsOnType`:
+Use the `[DependsOn]` attribute to specify dependencies. For multiple dependencies, list them in the attribute:
 
 ```csharp
+[DependsOn(typeof(TenantSeed), typeof(RoleSeed))]
 public class UserSeed : ISeed
 {
-    public Type? DependsOnType => typeof(TenantSeed);
-    
     public Task SeedAsync()
     {
         // Your seeding logic here
@@ -75,9 +64,36 @@ public class UserSeed : ISeed
 }
 ```
 
-### Dependency Priority
+#### Single Dependency
 
-If both properties are specified, `DependsOnTypes` takes precedence over `DependsOnType`.
+For seeds with only one dependency:
+
+```csharp
+[DependsOn(typeof(TenantSeed))]
+public class UserSeed : ISeed
+{
+    public Task SeedAsync()
+    {
+        // Your seeding logic here
+        return Task.CompletedTask;
+    }
+}
+```
+
+#### No Dependencies
+
+Seeds without dependencies don't need the attribute:
+
+```csharp
+public class TenantSeed : ISeed
+{
+    public Task SeedAsync()
+    {
+        // This seed has no dependencies
+        return Task.CompletedTask;
+    }
+}
+```
 
 ### Scoped Service Injection
 
@@ -170,16 +186,16 @@ The library detects circular dependencies and throws clear error messages:
 
 ```csharp
 // This will throw an InvalidOperationException
+[DependsOn(typeof(SeedB))]
 public class SeedA : ISeed 
 {
-    public Type[] DependsOnTypes => new[] { typeof(SeedB) };
-    // ...
+    public Task SeedAsync() => Task.CompletedTask;
 }
 
+[DependsOn(typeof(SeedA))] // Circular!
 public class SeedB : ISeed 
 {
-    public Type[] DependsOnTypes => new[] { typeof(SeedA) }; // Circular!
-    // ...
+    public Task SeedAsync() => Task.CompletedTask;
 }
 ```
 
@@ -194,15 +210,9 @@ Detects all types of cycles:
 Seeds can have multiple dependencies:
 
 ```csharp
+[DependsOn(typeof(TenantSeed), typeof(RoleSeed), typeof(PermissionSeed))]
 public class ComplexSeed : ISeed
 {
-    public Type[] DependsOnTypes => new[] 
-    { 
-        typeof(TenantSeed), 
-        typeof(RoleSeed), 
-        typeof(PermissionSeed) 
-    };
-
     // Executes only after ALL dependencies complete
     public async Task SeedAsync() { /* ... */ }
 }
@@ -222,10 +232,9 @@ public class UserRolesSeed : ISeed
 }
 
 // Single dependency
+[DependsOn(typeof(UserRolesSeed))]
 public class UsersSeed : ISeed
 {
-    public Type? DependsOnType => typeof(UserRolesSeed);
-    
     public Task SeedAsync()
     {
         // Seed users (requires roles first)
@@ -234,14 +243,9 @@ public class UsersSeed : ISeed
 }
 
 // Multiple dependencies
+[DependsOn(typeof(UsersSeed), typeof(PermissionsSeed))]
 public class UserPermissionsSeed : ISeed
 {
-    public Type[] DependsOnTypes => new[] 
-    { 
-        typeof(UsersSeed), 
-        typeof(PermissionsSeed) 
-    };
-    
     public Task SeedAsync()
     {
         // Seed user permissions (requires both users and permissions)

@@ -1,19 +1,14 @@
 ﻿namespace Neolution.Extensions.DataSeeding.Tests.CircularDependency.UnitTests
 {
-    using System;
     using System.Threading.Tasks;
     using Neolution.Extensions.DataSeeding.Abstractions;
 
     /// <summary>
     /// Circular dependency test seed A that depends on B.
     /// </summary>
+    [DependsOn(typeof(CircularDependencyB))]
     public class CircularDependencyA : ISeed
     {
-        /// <summary>
-        /// Gets the types this seed depends on.
-        /// </summary>
-        public Type[] DependsOnTypes { get; } = { typeof(CircularDependencyB) };
-
         /// <summary>
         /// Seeds the data.
         /// </summary>

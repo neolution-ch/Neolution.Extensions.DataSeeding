@@ -1,30 +1,38 @@
 ﻿namespace Neolution.Extensions.DataSeeding.Abstractions
 {
-    using System;
     using System.Threading.Tasks;
 
     /// <summary>
-    /// A data seed component.
+    /// Interface for seeds that can be executed by the seeding framework.
+    /// Use the <see cref="DependsOnAttribute"/> to specify execution dependencies.
     /// </summary>
+    /// <example>
+    /// <code>
+    /// [DependsOn(typeof(UserRolesSeed))]
+    /// public class UsersSeed : ISeed
+    /// {
+    ///     private readonly ILogger&lt;UsersSeed&gt; logger;
+    ///
+    ///     public UsersSeed(ILogger&lt;UsersSeed&gt; logger)
+    ///     {
+    ///         this.logger = logger;
+    ///     }
+    ///
+    ///     public async Task SeedAsync()
+    ///     {
+    ///         this.logger.LogInformation("Seeding users...");
+    ///         // Your seeding logic here
+    ///     }
+    /// }
+    /// </code>
+    /// </example>
     public interface ISeed
     {
         /// <summary>
-        /// Gets the seed types this seed depends on. These seeds will be executed before this seed.
-        /// For single dependency, you can also use the DependsOnType property for simpler syntax.
+        /// Performs the seeding operation asynchronously.
+        /// This method is called by the seeding framework after all dependencies have been executed.
         /// </summary>
-        public Type[] DependsOnTypes => Array.Empty<Type>();
-
-        /// <summary>
-        /// Gets the single seed type this seed depends on.
-        /// This provides a simpler alternative to DependsOnTypes when you only have one dependency.
-        /// If both DependsOnType and DependsOnTypes are specified, DependsOnTypes takes precedence.
-        /// </summary>
-        public Type? DependsOnType => null;
-
-        /// <summary>
-        /// The data to seed.
-        /// </summary>
-        /// <returns>The <see cref="Task"/>.</returns>
+        /// <returns>A task representing the asynchronous seeding operation.</returns>
         Task SeedAsync();
     }
 }

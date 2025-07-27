@@ -1,6 +1,5 @@
 ﻿namespace Neolution.Extensions.DataSeeding.Demo.Commands.Init.Seeds
 {
-    using System;
     using System.Threading.Tasks;
     using Microsoft.Extensions.Logging;
     using Neolution.Extensions.DataSeeding.Abstractions;
@@ -9,6 +8,7 @@
     /// Creates user roles for the CMS application
     /// Depends on system configuration being set up first
     /// </summary>
+    [DependsOn(typeof(SystemConfigurationSeed))]
     public class UserRolesSeed : ISeed
     {
         /// <summary>
@@ -24,9 +24,6 @@
         {
             this.logger = logger;
         }
-
-        /// <inheritdoc />
-        public Type DependsOnType => typeof(SystemConfigurationSeed);
 
         /// <inheritdoc />
         public async Task SeedAsync()

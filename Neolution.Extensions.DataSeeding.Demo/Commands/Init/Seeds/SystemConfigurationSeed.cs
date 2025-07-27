@@ -1,6 +1,5 @@
 ﻿namespace Neolution.Extensions.DataSeeding.Demo.Commands.Init.Seeds
 {
-    using System;
     using System.Threading.Tasks;
     using Microsoft.Extensions.Logging;
     using Neolution.Extensions.DataSeeding.Abstractions;
@@ -9,6 +8,7 @@
     /// Sets up basic system configuration and application settings
     /// Depends on database migration being completed first
     /// </summary>
+    [DependsOn(typeof(DatabaseMigrationSeed))]
     public class SystemConfigurationSeed : ISeed
     {
         /// <summary>
@@ -24,9 +24,6 @@
         {
             this.logger = logger;
         }
-
-        /// <inheritdoc />
-        public Type DependsOnType => typeof(DatabaseMigrationSeed);
 
         /// <inheritdoc />
         public async Task SeedAsync()

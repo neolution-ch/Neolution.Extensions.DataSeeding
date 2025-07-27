@@ -54,13 +54,12 @@ flowchart TD
 The `ContentSeed` shows how a single seed can depend on multiple other seeds:
 
 ```csharp
-public Type[] DependsOnTypes => new[]
+[DependsOn(typeof(CategoriesSeed), typeof(UsersSeed), 
+          typeof(ContentTemplatesSeed), typeof(ContentMetadataSeed))]
+public class ContentSeed : ISeed
 {
-    typeof(CategoriesSeed),
-    typeof(UsersSeed),
-    typeof(ContentTemplatesSeed),
-    typeof(ContentMetadataSeed),
-};
+    // Implementation
+}
 ```
 
 ### 2. Shared Dependencies

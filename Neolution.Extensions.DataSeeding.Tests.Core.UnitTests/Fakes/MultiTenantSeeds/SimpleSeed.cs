@@ -1,6 +1,5 @@
 ﻿namespace Neolution.Extensions.DataSeeding.Tests.Core.UnitTests.Fakes.MultiTenantSeeds
 {
-    using System;
     using System.Threading.Tasks;
     using Microsoft.Extensions.Logging;
     using Neolution.Extensions.DataSeeding.Abstractions;
@@ -41,9 +40,6 @@
             this.singletonService = singletonService;
             this.transientService = transientService;
         }
-
-        /// <inheritdoc />
-        public Type[] DependsOnTypes => Array.Empty<Type>();
 
         /// <inheritdoc />
         public async Task SeedAsync()

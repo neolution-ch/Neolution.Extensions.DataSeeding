@@ -1,6 +1,5 @@
 ﻿namespace Neolution.Extensions.DataSeeding.Demo.Commands.Init.Seeds
 {
-    using System;
     using System.Threading.Tasks;
     using Microsoft.Extensions.Logging;
     using Neolution.Extensions.DataSeeding.Abstractions;
@@ -9,6 +8,7 @@
     /// Configures site-wide settings like theme, language, SEO options
     /// Depends on MenusSeed to configure theme settings for menus
     /// </summary>
+    [DependsOn(typeof(MenusSeed))]
     public class SettingsSeed : ISeed
     {
         /// <summary>
@@ -24,9 +24,6 @@
         {
             this.logger = logger;
         }
-
-        /// <inheritdoc />
-        public Type DependsOnType => typeof(MenusSeed);
 
         /// <inheritdoc />
         public async Task SeedAsync()

@@ -1,19 +1,14 @@
 ﻿namespace Neolution.Extensions.DataSeeding.Tests.CircularDependency.UnitTests
 {
-    using System;
     using System.Threading.Tasks;
     using Neolution.Extensions.DataSeeding.Abstractions;
 
     /// <summary>
     /// Example seed showing the new simplified syntax for single dependency
     /// </summary>
+    [DependsOn(typeof(AnotherSeed))]
     public class SimpleDependencySeed : ISeed
     {
-        /// <summary>
-        /// Gets the single seed type this seed depends on.
-        /// </summary>
-        public Type? DependsOnType => typeof(AnotherSeed);
-
         /// <summary>
         /// Seeds the data.
         /// </summary>

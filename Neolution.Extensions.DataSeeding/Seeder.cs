@@ -1,6 +1,7 @@
 ﻿namespace Neolution.Extensions.DataSeeding
 {
     using System;
+    using System.Linq;
     using System.Threading.Tasks;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Logging;
@@ -63,14 +64,6 @@
             this.logger.LogDebug("All seeds have been seeded!");
         }
 
-        /// <inheritdoc />
-        public async Task SeedAsync<T>()
-            where T : Seed
-        {
-            var seed = Seeding.Instance.FindSeed<T>();
-            await seed.SeedAsync().ConfigureAwait(false);
-        }
-
         /// <summary>
         /// Gets a description of the seed's dependencies for logging purposes.
         /// </summary>
@@ -78,15 +71,11 @@
         /// <returns>A formatted dependency description.</returns>
         private static string GetDependencyDescription(ISeed seed)
         {
-            // Check dependencies in priority order
-            if (seed.DependsOnTypes?.Length > 0)
-            {
-                return $" (depends on: {string.Join(", ", System.Linq.Enumerable.Select(seed.DependsOnTypes, t => t.Name))})";
-            }
+            var dependencies = Internal.DependencyResolver.GetSeedDependencies(seed);
 
-            if (seed.DependsOnType != null)
+            if (dependencies.Length > 0)
             {
-                return $" (depends on: {seed.DependsOnType.Name})";
+                return $" (depends on: {string.Join(", ", dependencies.Select(t => t.Name))})";
             }
 
             return " (no dependencies)";

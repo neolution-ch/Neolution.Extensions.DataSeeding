@@ -1,36 +1,20 @@
 ﻿namespace Neolution.Extensions.DataSeeding.Tests.MultiDependency.UnitTests
 {
-    using System;
     using System.Threading.Tasks;
-    using Microsoft.Extensions.Logging;
     using Neolution.Extensions.DataSeeding.Abstractions;
 
     /// <summary>
-    /// Test seed with multiple dependencies.
+    /// A seed with complex multi-dependencies for testing.
     /// </summary>
+    [DependsOn(typeof(FoundationSeedA), typeof(FoundationSeedB))]
     public class ComplexSeed : ISeed
     {
         /// <summary>
-        /// The logger
+        /// Seeds the data.
         /// </summary>
-        private readonly ILogger<ComplexSeed> logger;
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="ComplexSeed"/> class.
-        /// </summary>
-        /// <param name="logger">The logger.</param>
-        public ComplexSeed(ILogger<ComplexSeed> logger)
-        {
-            this.logger = logger;
-        }
-
-        /// <inheritdoc />
-        public Type[] DependsOnTypes => new[] { typeof(FoundationSeedA), typeof(FoundationSeedB) };
-
-        /// <inheritdoc />
+        /// <returns>A task representing the asynchronous operation.</returns>
         public Task SeedAsync()
         {
-            this.logger.LogInformation("ComplexSeed executed (depends on FoundationSeedA and FoundationSeedB)");
             return Task.CompletedTask;
         }
     }

@@ -1,11 +1,11 @@
 ﻿namespace Neolution.Extensions.DataSeeding.Tests.Core.UnitTests.Fakes.MultiTenantSeeds
 {
-    using System;
     using System.Threading.Tasks;
     using Microsoft.Extensions.Logging;
     using Neolution.Extensions.DataSeeding.Abstractions;
 
     /// <inheritdoc />
+    [DependsOn(typeof(UsersSeed))]
     public class PermissionsSeed : ISeed
     {
         /// <summary>
@@ -21,9 +21,6 @@
         {
             this.logger = logger;
         }
-
-        /// <inheritdoc />
-        public Type DependsOnType => typeof(UsersSeed);
 
         /// <inheritdoc />
         public Task SeedAsync()

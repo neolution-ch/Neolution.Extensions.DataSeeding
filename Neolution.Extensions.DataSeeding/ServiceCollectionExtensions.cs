@@ -27,13 +27,7 @@
                 .AsImplementedInterfaces()
                 .WithTransientLifetime());
 
-            // Register Seed implementations
-            services.Scan(scan => scan
-                .FromAssemblies(assembly)
-                .AddClasses(classes => classes.AssignableTo<Seed>())
-                .AsSelf()
-                .As<Seed>()
-                .WithTransientLifetime());
+            // All ISeed implementations are already registered above
         }
     }
 }

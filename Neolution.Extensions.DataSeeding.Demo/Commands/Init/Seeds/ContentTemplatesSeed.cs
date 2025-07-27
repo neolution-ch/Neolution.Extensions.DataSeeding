@@ -1,6 +1,5 @@
 ﻿namespace Neolution.Extensions.DataSeeding.Demo.Commands.Init.Seeds
 {
-    using System;
     using System.Threading.Tasks;
     using Microsoft.Extensions.Logging;
     using Neolution.Extensions.DataSeeding.Abstractions;
@@ -9,6 +8,7 @@
     /// Creates content templates and workflow configurations
     /// Depends on UserRolesSeed for permission setup, used by ContentSeed and MenusSeed
     /// </summary>
+    [DependsOn(typeof(UserRolesSeed))]
     public class ContentTemplatesSeed : ISeed
     {
         /// <summary>
@@ -24,12 +24,6 @@
         {
             this.logger = logger;
         }
-
-        /// <inheritdoc />
-        public Type[] DependsOnTypes => new[]
-        {
-            typeof(UserRolesSeed),
-        };
 
         /// <inheritdoc />
         public async Task SeedAsync()

@@ -1,6 +1,5 @@
 ﻿namespace Neolution.Extensions.DataSeeding.Demo.Commands.Init.Seeds
 {
-    using System;
     using System.Threading.Tasks;
     using Microsoft.Extensions.Logging;
     using Neolution.Extensions.DataSeeding.Abstractions;
@@ -9,6 +8,7 @@
     /// Creates user profiles and personalization settings
     /// Depends on UsersSeed to have users available for profile creation
     /// </summary>
+    [DependsOn(typeof(UsersSeed))]
     public class UserProfilesSeed : ISeed
     {
         /// <summary>
@@ -24,12 +24,6 @@
         {
             this.logger = logger;
         }
-
-        /// <inheritdoc />
-        public Type[] DependsOnTypes => new[]
-        {
-            typeof(UsersSeed),
-        };
 
         /// <inheritdoc />
         public async Task SeedAsync()

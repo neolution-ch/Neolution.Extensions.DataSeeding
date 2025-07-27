@@ -1,36 +1,19 @@
 ﻿namespace Neolution.Extensions.DataSeeding.Tests.MultiDependency.UnitTests
 {
-    using System;
     using System.Threading.Tasks;
-    using Microsoft.Extensions.Logging;
     using Neolution.Extensions.DataSeeding.Abstractions;
 
     /// <summary>
-    /// Foundation seed A.
+    /// Foundation seed A for multi-dependency testing.
     /// </summary>
     public class FoundationSeedA : ISeed
     {
         /// <summary>
-        /// The logger
+        /// Seeds the data.
         /// </summary>
-        private readonly ILogger<FoundationSeedA> logger;
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="FoundationSeedA"/> class.
-        /// </summary>
-        /// <param name="logger">The logger.</param>
-        public FoundationSeedA(ILogger<FoundationSeedA> logger)
-        {
-            this.logger = logger;
-        }
-
-        /// <inheritdoc />
-        public Type[] DependsOnTypes => Array.Empty<Type>();
-
-        /// <inheritdoc />
+        /// <returns>A task representing the asynchronous operation.</returns>
         public Task SeedAsync()
         {
-            this.logger.LogInformation("FoundationSeedA executed (no dependencies)");
             return Task.CompletedTask;
         }
     }

@@ -1,6 +1,5 @@
 ﻿namespace Neolution.Extensions.DataSeeding.Demo.Commands.Init.Seeds
 {
-    using System;
     using System.Threading.Tasks;
     using Microsoft.Extensions.Logging;
     using Neolution.Extensions.DataSeeding.Abstractions;
@@ -9,6 +8,7 @@
     /// Creates sample content including pages and articles
     /// Depends on both categories and users being available (demonstrates multiple dependencies)
     /// </summary>
+    [DependsOn(typeof(CategoriesSeed), typeof(UsersSeed), typeof(ContentTemplatesSeed), typeof(ContentMetadataSeed))]
     public class ContentSeed : ISeed
     {
         /// <summary>
@@ -24,15 +24,6 @@
         {
             this.logger = logger;
         }
-
-        /// <inheritdoc />
-        public Type[] DependsOnTypes => new[]
-        {
-            typeof(CategoriesSeed),
-            typeof(UsersSeed),
-            typeof(ContentTemplatesSeed),
-            typeof(ContentMetadataSeed),
-        };
 
         /// <inheritdoc />
         public async Task SeedAsync()

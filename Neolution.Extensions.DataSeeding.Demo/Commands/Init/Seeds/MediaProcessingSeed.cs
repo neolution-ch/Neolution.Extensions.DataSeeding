@@ -1,6 +1,5 @@
 ﻿namespace Neolution.Extensions.DataSeeding.Demo.Commands.Init.Seeds
 {
-    using System;
     using System.Threading.Tasks;
     using Microsoft.Extensions.Logging;
     using Neolution.Extensions.DataSeeding.Abstractions;
@@ -9,6 +8,7 @@
     /// Sets up media processing configuration and creates thumbnails for uploaded media files
     /// Depends on MediaFilesSeed to have files available for processing
     /// </summary>
+    [DependsOn(typeof(MediaFilesSeed))]
     public class MediaProcessingSeed : ISeed
     {
         /// <summary>
@@ -24,12 +24,6 @@
         {
             this.logger = logger;
         }
-
-        /// <inheritdoc />
-        public Type[] DependsOnTypes => new[]
-        {
-            typeof(MediaFilesSeed),
-        };
 
         /// <inheritdoc />
         public async Task SeedAsync()

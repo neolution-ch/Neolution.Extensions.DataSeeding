@@ -29,11 +29,6 @@
         private IServiceProvider? serviceProvider;
 
         /// <summary>
-        /// The seeds
-        /// </summary>
-        private IReadOnlyList<Seed> seeds = Enumerable.Empty<Seed>().ToList();
-
-        /// <summary>
         /// Prevents a default instance of the <see cref="Seeding"/> class from being created.
         /// </summary>
         private Seeding()
@@ -85,26 +80,11 @@
             {
                 var allSeeds = tempScope.ServiceProvider.GetServices<ISeed>().ToList();
                 this.Seeds = allSeeds.Where(seed => seed.GetType().Assembly == this.seedsAssembly).ToList();
-
-                var allBasicSeeds = tempScope.ServiceProvider.GetServices<Seed>().ToList();
-                this.seeds = allBasicSeeds.Where(seed => seed.GetType().Assembly == this.seedsAssembly).ToList();
             }
 
-            logger.LogDebug("{SeedsCount} seeds have been found and loaded", this.Seeds.Count + this.seeds.Count);
+            logger.LogDebug("{SeedsCount} seeds have been found and loaded", this.Seeds.Count);
             logger.LogTrace("{SeedCount} ISeed implementations found", this.Seeds.Count);
-            logger.LogTrace("{SeedCount} Seed implementations found", this.seeds.Count);
             logger.LogDebug("Seeding instance ready");
-        }
-
-        /// <summary>
-        /// Finds the seed.
-        /// </summary>
-        /// <typeparam name="T">The type of the seed.</typeparam>
-        /// <returns>The found <see cref="Seed"/>.</returns>
-        internal Seed FindSeed<T>()
-            where T : Seed
-        {
-            return this.seeds.Single(x => x.GetType() == typeof(T));
         }
 
         /// <summary>

@@ -1,6 +1,5 @@
 ﻿namespace Neolution.Extensions.DataSeeding.Demo.Commands.Init.Seeds
 {
-    using System;
     using System.Threading.Tasks;
     using Microsoft.Extensions.Logging;
     using Neolution.Extensions.DataSeeding.Abstractions;
@@ -24,9 +23,6 @@
         {
             this.logger = logger;
         }
-
-        /// <inheritdoc />
-        public Type[] DependsOnTypes => Array.Empty<Type>();
 
         /// <inheritdoc />
         public async Task SeedAsync()

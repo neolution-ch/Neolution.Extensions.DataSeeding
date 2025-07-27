@@ -3,6 +3,7 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Reflection;
     using Neolution.Extensions.DataSeeding.Abstractions;
 
     /// <summary>
@@ -27,6 +28,32 @@
             ValidateNoCycles(seedList, result);
 
             return result;
+        }
+
+        /// <summary>
+        /// Gets the dependencies for a specific seed.
+        /// Reads dependency information from the <see cref="DependsOnAttribute"/>.
+        /// </summary>
+        /// <param name="seed">The seed to get dependencies for.</param>
+        /// <returns>Array of dependency types.</returns>
+        internal static Type[] GetSeedDependencies(ISeed seed)
+        {
+            if (seed == null)
+            {
+                throw new ArgumentNullException(nameof(seed));
+            }
+
+            var seedType = seed.GetType();
+
+            // Check for the DependsOnAttribute
+            var dependsOnAttribute = seedType.GetCustomAttribute<DependsOnAttribute>();
+            if (dependsOnAttribute != null)
+            {
+                return dependsOnAttribute.SeedTypes;
+            }
+
+            // No dependencies if no attribute is present
+            return Array.Empty<Type>();
         }
 
         /// <summary>
@@ -57,27 +84,6 @@
             }
 
             return (graph, inDegree);
-        }
-
-        /// <summary>
-        /// Gets the dependencies for a specific seed.
-        /// </summary>
-        /// <param name="seed">The seed to get dependencies for.</param>
-        /// <returns>Array of dependency types.</returns>
-        private static Type[] GetSeedDependencies(ISeed seed)
-        {
-            // Priority order: DependsOnTypes > DependsOnType
-            if (seed.DependsOnTypes?.Length > 0)
-            {
-                return seed.DependsOnTypes;
-            }
-
-            if (seed.DependsOnType != null)
-            {
-                return new[] { seed.DependsOnType };
-            }
-
-            return Array.Empty<Type>();
         }
 
         /// <summary>

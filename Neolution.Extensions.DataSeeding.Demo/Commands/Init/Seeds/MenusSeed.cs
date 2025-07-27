@@ -1,14 +1,14 @@
 ﻿namespace Neolution.Extensions.DataSeeding.Demo.Commands.Init.Seeds
 {
-    using System;
     using System.Threading.Tasks;
     using Microsoft.Extensions.Logging;
     using Neolution.Extensions.DataSeeding.Abstractions;
 
     /// <summary>
-    /// Creates navigation menus for the website
-    /// Depends on content being available to link to
+    /// Creates navigation menus and menu structures
+    /// Depends on ContentTemplatesSeed for menu templates
     /// </summary>
+    [DependsOn(typeof(ContentTemplatesSeed))]
     public class MenusSeed : ISeed
     {
         /// <summary>
@@ -26,18 +26,11 @@
         }
 
         /// <inheritdoc />
-        public Type[] DependsOnTypes => new[]
-        {
-            typeof(ContentSeed),
-            typeof(ContentTemplatesSeed),
-        };
-
-        /// <inheritdoc />
         public async Task SeedAsync()
         {
-            this.logger.LogInformation("Creating navigation menus: Main menu, Footer menu, User account menu...");
-            await Task.Delay(100);
-            this.logger.LogInformation("Navigation menus created and linked to content");
+            this.logger.LogInformation("Creating navigation menus: main menu, footer menu, admin menu...");
+            await Task.Delay(120);
+            this.logger.LogInformation("Navigation menus created and configured with templates");
         }
     }
 }

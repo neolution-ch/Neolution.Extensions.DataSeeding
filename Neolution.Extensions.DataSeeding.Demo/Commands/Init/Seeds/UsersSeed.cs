@@ -1,6 +1,5 @@
 ﻿namespace Neolution.Extensions.DataSeeding.Demo.Commands.Init.Seeds
 {
-    using System;
     using System.Threading.Tasks;
     using Microsoft.Extensions.Logging;
     using Neolution.Extensions.DataSeeding.Abstractions;
@@ -9,6 +8,7 @@
     /// Creates initial administrator and sample users
     /// Depends on user roles being available
     /// </summary>
+    [DependsOn(typeof(UserRolesSeed))]
     public class UsersSeed : ISeed
     {
         /// <summary>
@@ -24,9 +24,6 @@
         {
             this.logger = logger;
         }
-
-        /// <inheritdoc />
-        public Type DependsOnType => typeof(UserRolesSeed);
 
         /// <inheritdoc />
         public async Task SeedAsync()
