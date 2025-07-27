@@ -43,28 +43,54 @@
             lines.Add("Dependency Graph:");
             lines.Add("================");
 
+            AddDependencyGraphSection(seedList, seedLookup, lines);
+            AddExecutionOrderSection(seedList, lines);
+
+            return string.Join(Environment.NewLine, lines);
+        }
+
+        /// <summary>
+        /// Adds the dependency graph visualization section.
+        /// </summary>
+        /// <param name="seedList">The list of seeds to visualize.</param>
+        /// <param name="seedLookup">Dictionary for fast seed lookup by type.</param>
+        /// <param name="lines">The lines collection to add to.</param>
+        private static void AddDependencyGraphSection(IList<ISeed> seedList, Dictionary<Type, ISeed> seedLookup, List<string> lines)
+        {
             foreach (var seed in seedList)
             {
                 var seedName = seed.GetType().Name;
                 var dependencies = GetSeedDependencies(seed);
 
-                if (dependencies.Length == 0)
-                {
-                    lines.Add($"◦ {seedName} (no dependencies)");
-                }
-                else
-                {
-                    lines.Add($"◦ {seedName}");
-                    foreach (var dependency in dependencies)
-                    {
-                        var status = seedLookup.ContainsKey(dependency)
-                            ? string.Empty
-                            : " (not found in seed collection)";
-                        lines.Add($"  └─ depends on: {dependency.Name}{status}");
-                    }
-                }
+                lines.Add($"* {seedName}");
+                AddSeedDependencies(dependencies, seedLookup, lines);
             }
+        }
 
+        /// <summary>
+        /// Adds the dependency lines for a specific seed.
+        /// </summary>
+        /// <param name="dependencies">The dependency types for the seed.</param>
+        /// <param name="seedLookup">Dictionary for fast seed lookup by type.</param>
+        /// <param name="lines">The lines collection to add to.</param>
+        private static void AddSeedDependencies(Type[] dependencies, Dictionary<Type, ISeed> seedLookup, List<string> lines)
+        {
+            for (int i = 0; i < dependencies.Length; i++)
+            {
+                var dependency = dependencies[i];
+                var status = seedLookup.ContainsKey(dependency) ? string.Empty : " (missing)";
+                var connector = i == dependencies.Length - 1 ? "└──" : "├──";
+                lines.Add($"  {connector} {dependency.Name}{status}");
+            }
+        }
+
+        /// <summary>
+        /// Adds the execution order section to the visualization.
+        /// </summary>
+        /// <param name="seedList">The list of seeds to process.</param>
+        /// <param name="lines">The lines collection to add to.</param>
+        private static void AddExecutionOrderSection(IList<ISeed> seedList, List<string> lines)
+        {
             lines.Add(string.Empty);
             lines.Add("Execution Order (topologically sorted):");
             lines.Add("=======================================");
@@ -81,8 +107,6 @@
             {
                 lines.Add($"ERROR: {ex.Message}");
             }
-
-            return string.Join(Environment.NewLine, lines);
         }
 
         /// <summary>

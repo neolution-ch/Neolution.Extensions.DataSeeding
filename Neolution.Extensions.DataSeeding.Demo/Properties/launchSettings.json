@@ -1,6 +1,6 @@
 {
   "profiles": {
-    "Neolution.Extensions.DataSeeding.Sample": {
+    "DataSeeding Demo App": {
       "commandName": "Project",
       "environmentVariables": {
         "DOTNET_ENVIRONMENT": "Development"

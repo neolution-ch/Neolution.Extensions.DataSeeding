@@ -26,6 +26,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Neolution.Extensions.DataSe
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Neolution.Extensions.DataSeeding.Demo", "Neolution.Extensions.DataSeeding.Demo\Neolution.Extensions.DataSeeding.Demo.csproj", "{99C05D1A-0230-BCC0-35E9-F7EDEAED5970}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{02EA681E-C7D8-13C7-8484-4AC65E1B71E8}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -123,6 +125,13 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{AAE4167A-DFA8-4C4F-8008-CC68F49DE7BF} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
+		{B17509C4-0796-45FB-2CC4-04D59467875D} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
+		{20C74226-61B6-97E3-F329-B446D8C5E0E2} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
+		{D8D831E2-3A1E-3E86-B7CD-F49273100149} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
+		{E3D54B8C-9320-3BEB-402B-727F56F15820} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {5A2A6363-0CAE-4400-8903-B346EA76BA17}
