@@ -1,4 +1,4 @@
-namespace Neolution.Extensions.DataSeeding.CircularDependency.UnitTests
+﻿namespace Neolution.Extensions.DataSeeding.CircularDependency.UnitTests
 {
     using System;
     using System.Threading.Tasks;

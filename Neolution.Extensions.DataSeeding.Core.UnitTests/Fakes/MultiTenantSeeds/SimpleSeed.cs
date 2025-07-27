@@ -55,6 +55,8 @@
         public async Task SeedAsync()
         {
             this.logger.LogInformation("Executing simple seed");
+            this.logger.LogDebug("Singleton service ID: {SingletonId}", this.singletonService.ServiceId);
+            this.logger.LogDebug("Transient service ID: {TransientId}", this.transientService.ServiceId);
             await Task.CompletedTask;
         }
     }

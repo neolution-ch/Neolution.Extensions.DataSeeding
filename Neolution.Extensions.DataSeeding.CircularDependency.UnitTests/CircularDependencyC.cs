@@ -5,14 +5,14 @@
     using Neolution.Extensions.DataSeeding.Abstractions;
 
     /// <summary>
-    /// Circular dependency test seed B that depends on A.
+    /// Circular dependency test seed C that depends on A, forming a 3-node cycle: A → B → C → A.
     /// </summary>
-    public class CircularDependencyB : ISeed
+    public class CircularDependencyC : ISeed
     {
         /// <summary>
         /// Gets the types this seed depends on.
         /// </summary>
-        public Type[] DependsOnTypes { get; } = { typeof(CircularDependencyC) };
+        public Type[] DependsOnTypes { get; } = { typeof(CircularDependencyA) };
 
         /// <inheritdoc />
         public Type? DependsOn => null;
@@ -26,7 +26,7 @@
         /// <returns>A task representing the asynchronous operation.</returns>
         public Task SeedAsync()
         {
-            // This seed intentionally creates a circular dependency for testing
+            // This seed intentionally creates a 3-node circular dependency for testing
             return Task.CompletedTask;
         }
     }

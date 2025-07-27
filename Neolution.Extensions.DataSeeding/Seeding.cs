@@ -7,7 +7,6 @@
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Logging;
     using Neolution.Extensions.DataSeeding.Abstractions;
-    using Neolution.Extensions.DataSeeding.Internal;
 
     /// <summary>
     /// The Seeding singleton.
@@ -90,33 +89,6 @@
         }
 
         /// <summary>
-        /// Wraps up all the seeds that do not depend on another seed.
-        /// </summary>
-        /// <returns>The wrapped seeds.</returns>
-        internal IList<Wrap> WrapSeeds()
-        {
-            return this.FindDependentSeeds()
-                .OrderBy(seed => seed.Priority)
-                .Select(seed => this.Wrap(seed.GetType()))
-                .ToList();
-        }
-
-        /// <summary>
-        /// Recursively unwraps the containing seeds and push them into a sorted list.
-        /// </summary>
-        /// <param name="wraps">The wraps.</param>
-        /// <param name="sortedSeeds">The list of already sorted seeds.</param>
-        internal void RecursiveUnwrap(IEnumerable<Wrap> wraps, List<ISeed> sortedSeeds)
-        {
-            foreach (var wrap in wraps)
-            {
-                var seed = this.Unwrap(wrap);
-                sortedSeeds.Add(seed);
-                this.RecursiveUnwrap(wrap.Wrapped, sortedSeeds);
-            }
-        }
-
-        /// <summary>
         /// Finds the seed.
         /// </summary>
         /// <typeparam name="T">The type of the seed.</typeparam>
@@ -125,45 +97,6 @@
             where T : Seed
         {
             return this.seeds.Single(x => x.GetType() == typeof(T));
-        }
-
-        /// <summary>
-        /// Finds the seeds that depend on the specified seed type.
-        /// </summary>
-        /// <param name="seedType">Type of the seed.</param>
-        /// <returns>The dependent seeds.</returns>
-        private IEnumerable<ISeed> FindDependentSeeds(Type? seedType = null)
-        {
-            return this.Seeds.Where(x => x.DependsOn == seedType).ToList();
-        }
-
-        /// <summary>
-        /// Recursively Wraps the specified seed type.
-        /// </summary>
-        /// <param name="seedType">Type of the seed.</param>
-        /// <returns>The wrapped seed(s).</returns>
-        private Wrap Wrap(Type? seedType)
-        {
-            var wrap = new Wrap { SeedType = seedType };
-
-            var dependentSeeds = this.FindDependentSeeds(wrap.SeedType);
-            foreach (var seed in dependentSeeds)
-            {
-                var wrapped = this.Wrap(seed.GetType());
-                wrap.Wrapped.Add(wrapped);
-            }
-
-            return wrap;
-        }
-
-        /// <summary>
-        /// Unwraps the specified wrap.
-        /// </summary>
-        /// <param name="wrap">The wrap.</param>
-        /// <returns>The containing seed.</returns>
-        private ISeed Unwrap(Wrap wrap)
-        {
-            return this.Seeds.Single(x => x.GetType() == wrap.SeedType);
         }
     }
 }

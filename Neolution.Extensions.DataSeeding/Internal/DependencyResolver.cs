@@ -20,47 +20,106 @@
         public static IList<ISeed> ResolveDependencies(IEnumerable<ISeed> seeds)
         {
             var seedList = seeds.ToList();
-            var result = new List<ISeed>();
-
-            // Build adjacency list and in-degree count
-            var graph = new Dictionary<ISeed, List<ISeed>>();
-            var inDegree = new Dictionary<ISeed, int>();
             var seedLookup = seedList.ToDictionary(s => s.GetType(), s => s);
 
-            // Initialize graph and in-degree
+            var (graph, inDegree) = BuildDependencyGraph(seedList, seedLookup);
+            var result = ProcessTopologicalSort(seedList, graph, inDegree);
+            ValidateNoCycles(seedList, result);
+
+            return result;
+        }
+
+        /// <summary>
+        /// Builds the dependency graph and calculates in-degrees for all seeds.
+        /// </summary>
+        /// <param name="seedList">The list of seeds to process.</param>
+        /// <param name="seedLookup">Dictionary for fast seed lookup by type.</param>
+        /// <returns>A tuple containing the dependency graph and in-degree counts.</returns>
+        private static (SeedGraph Graph, InDegreeMap InDegree) BuildDependencyGraph(
+            IList<ISeed> seedList,
+            Dictionary<Type, ISeed> seedLookup)
+        {
+            var graph = new SeedGraph();
+            var inDegree = new InDegreeMap();
+
+            // Initialize graph and in-degree for all seeds
             foreach (var seed in seedList)
             {
                 graph[seed] = new List<ISeed>();
                 inDegree[seed] = 0;
             }
 
-            // Build the graph
+            // Build dependency relationships
             foreach (var seed in seedList)
             {
-                // Get dependencies from new DependsOnTypes property
-                var dependencies = seed.DependsOnTypes ?? Array.Empty<Type>();
-
-                // Fall back to legacy DependsOn property if DependsOnTypes is empty
-#pragma warning disable CS0618 // Type or member is obsolete
-                if (dependencies.Length == 0 && seed.DependsOn != null)
-                {
-                    dependencies = new[] { seed.DependsOn };
-                }
-#pragma warning restore CS0618 // Type or member is obsolete
-
-                foreach (var dependencyType in dependencies)
-                {
-                    if (seedLookup.TryGetValue(dependencyType, out var dependency))
-                    {
-                        // dependency -> seed (dependency must execute before seed)
-                        graph[dependency].Add(seed);
-                        inDegree[seed]++;
-                    }
-                }
+                var dependencies = GetSeedDependencies(seed);
+                AddDependenciesToGraph(seed, dependencies, seedLookup, graph, inDegree);
             }
 
-            // Find all seeds with no dependencies (in-degree = 0)
+            return (graph, inDegree);
+        }
+
+        /// <summary>
+        /// Gets the dependencies for a specific seed, supporting both new and legacy dependency properties.
+        /// </summary>
+        /// <param name="seed">The seed to get dependencies for.</param>
+        /// <returns>Array of dependency types.</returns>
+        private static Type[] GetSeedDependencies(ISeed seed)
+        {
+            // Use new DependsOnTypes property if available
+            if (seed.DependsOnTypes?.Length > 0)
+            {
+                return seed.DependsOnTypes;
+            }
+
+            // Fall back to legacy DependsOn property with pragma to suppress obsolete warning
+#pragma warning disable CS0618 // Type or member is obsolete
+            return seed.DependsOn != null ? new[] { seed.DependsOn } : Array.Empty<Type>();
+#pragma warning restore CS0618 // Type or member is obsolete
+        }
+
+        /// <summary>
+        /// Adds dependencies to the graph and updates in-degree counts.
+        /// </summary>
+        /// <param name="seed">The seed that has dependencies.</param>
+        /// <param name="dependencies">The types this seed depends on.</param>
+        /// <param name="seedLookup">Dictionary for fast seed lookup by type.</param>
+        /// <param name="graph">The dependency graph to update.</param>
+        /// <param name="inDegree">The in-degree count to update.</param>
+        private static void AddDependenciesToGraph(
+            ISeed seed,
+            Type[] dependencies,
+            Dictionary<Type, ISeed> seedLookup,
+            SeedGraph graph,
+            InDegreeMap inDegree)
+        {
+            foreach (var dependencyType in dependencies)
+            {
+                if (seedLookup.TryGetValue(dependencyType, out var dependency))
+                {
+                    // dependency -> seed (dependency must execute before seed)
+                    graph[dependency].Add(seed);
+                    inDegree[seed]++;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Processes the topological sort using Kahn's algorithm.
+        /// </summary>
+        /// <param name="seedList">The list of seeds to process.</param>
+        /// <param name="graph">The dependency graph.</param>
+        /// <param name="inDegree">The in-degree count for each seed.</param>
+        /// <returns>The seeds sorted in execution order.</returns>
+        private static List<ISeed> ProcessTopologicalSort(
+            IList<ISeed> seedList,
+            SeedGraph graph,
+            InDegreeMap inDegree)
+        {
+            var result = new List<ISeed>();
             var queue = new Queue<ISeed>();
+
+            // Find all seeds with no dependencies (in-degree = 0)
             foreach (var seed in seedList)
             {
                 if (inDegree[seed] == 0)
@@ -69,13 +128,13 @@
                 }
             }
 
-            // Process seeds in topological order
+            // Process the queue using Kahn's algorithm
             while (queue.Count > 0)
             {
                 var currentSeed = queue.Dequeue();
                 result.Add(currentSeed);
 
-                // Reduce in-degree for all dependent seeds
+                // For each seed that depends on the current seed
                 foreach (var dependentSeed in graph[currentSeed])
                 {
                     inDegree[dependentSeed]--;
@@ -86,16 +145,36 @@
                 }
             }
 
-            // Check for circular dependencies
+            return result;
+        }
+
+        /// <summary>
+        /// Validates that no circular dependencies exist by checking if all seeds were processed.
+        /// </summary>
+        /// <param name="seedList">The original list of seeds.</param>
+        /// <param name="result">The processed seeds from topological sort.</param>
+        /// <exception cref="InvalidOperationException">Thrown when circular dependencies are detected.</exception>
+        private static void ValidateNoCycles(IList<ISeed> seedList, List<ISeed> result)
+        {
             if (result.Count != seedList.Count)
             {
                 var unprocessedSeeds = seedList.Except(result).Select(s => s.GetType().Name);
-                throw new InvalidOperationException(
-                    $"Circular dependency detected in seeds: {string.Join(", ", unprocessedSeeds)}. " +
-                    "Please review your seed dependencies to eliminate cycles.");
+                throw new InvalidOperationException($"Circular dependency detected among seeds: {string.Join(", ", unprocessedSeeds)}");
             }
+        }
 
-            return result;
+        /// <summary>
+        /// Helper class to wrap seed dependency graph to avoid nested generic types (S4017).
+        /// </summary>
+        private sealed class SeedGraph : Dictionary<ISeed, List<ISeed>>
+        {
+        }
+
+        /// <summary>
+        /// Helper class to wrap in-degree mapping to avoid nested generic types (S4017).
+        /// </summary>
+        private sealed class InDegreeMap : Dictionary<ISeed, int>
+        {
         }
     }
 }

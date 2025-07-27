@@ -45,6 +45,29 @@
         }
 
         /// <summary>
+        /// Tests that complex 3-node circular dependency (A → B → C → A) is detected.
+        /// </summary>
+        [Fact]
+        public void ThreeNodeCircularDependencyDetected()
+        {
+            // Arrange
+            var services = this.CreateServiceCollection();
+            services.AddDataSeeding(typeof(CircularDependencyTests).Assembly);
+            var serviceProvider = services.BuildServiceProvider();
+            var seeder = serviceProvider.GetRequiredService<ISeeder>();
+
+            // Act & Assert - should detect A → B → C → A cycle
+            var exception = Should.Throw<InvalidOperationException>(() => seeder.SeedAsync().GetAwaiter().GetResult());
+            exception.Message.ShouldContain("Circular dependency detected");
+
+            // Verify that all three seeds are mentioned as part of the cycle
+            exception.Message.ShouldSatisfyAllConditions(
+                () => exception.Message.ShouldContain("CircularDependencyA"),
+                () => exception.Message.ShouldContain("CircularDependencyB"),
+                () => exception.Message.ShouldContain("CircularDependencyC"));
+        }
+
+        /// <summary>
         /// Creates the service collection.
         /// </summary>
         /// <returns>The <see cref="IServiceCollection"/>.</returns>
