@@ -30,6 +30,62 @@
         }
 
         /// <summary>
+        /// Creates a pretty-printed visualization of the dependency graph.
+        /// </summary>
+        /// <param name="seeds">The collection of seeds to visualize.</param>
+        /// <returns>A formatted string showing the dependency graph structure.</returns>
+        public static string CreateDependencyGraphVisualization(IEnumerable<ISeed> seeds)
+        {
+            var seedList = seeds.ToList();
+            var seedLookup = seedList.ToDictionary(s => s.GetType(), s => s);
+            var lines = new List<string>();
+
+            lines.Add("Dependency Graph:");
+            lines.Add("================");
+
+            foreach (var seed in seedList)
+            {
+                var seedName = seed.GetType().Name;
+                var dependencies = GetSeedDependencies(seed);
+
+                if (dependencies.Length == 0)
+                {
+                    lines.Add($"◦ {seedName} (no dependencies)");
+                }
+                else
+                {
+                    lines.Add($"◦ {seedName}");
+                    foreach (var dependency in dependencies)
+                    {
+                        var status = seedLookup.ContainsKey(dependency)
+                            ? string.Empty
+                            : " (not found in seed collection)";
+                        lines.Add($"  └─ depends on: {dependency.Name}{status}");
+                    }
+                }
+            }
+
+            lines.Add(string.Empty);
+            lines.Add("Execution Order (topologically sorted):");
+            lines.Add("=======================================");
+
+            try
+            {
+                var sortedSeeds = ResolveDependencies(seedList);
+                for (int i = 0; i < sortedSeeds.Count; i++)
+                {
+                    lines.Add($"{i + 1}. {sortedSeeds[i].GetType().Name}");
+                }
+            }
+            catch (InvalidOperationException ex)
+            {
+                lines.Add($"ERROR: {ex.Message}");
+            }
+
+            return string.Join(Environment.NewLine, lines);
+        }
+
+        /// <summary>
         /// Builds the dependency graph and calculates in-degrees for all seeds.
         /// </summary>
         /// <param name="seedList">The list of seeds to process.</param>
@@ -66,10 +122,15 @@
         /// <returns>Array of dependency types.</returns>
         private static Type[] GetSeedDependencies(ISeed seed)
         {
-            // Use new DependsOnTypes property if available
+            // Priority order: DependsOnTypes > DependsOnType > DependsOn (legacy)
             if (seed.DependsOnTypes?.Length > 0)
             {
                 return seed.DependsOnTypes;
+            }
+
+            if (seed.DependsOnType != null)
+            {
+                return new[] { seed.DependsOnType };
             }
 
             // Fall back to legacy DependsOn property with pragma to suppress obsolete warning

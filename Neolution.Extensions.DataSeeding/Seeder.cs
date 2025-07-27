@@ -2,7 +2,6 @@
 {
     using System;
     using System.Diagnostics.CodeAnalysis;
-    using System.Linq;
     using System.Threading.Tasks;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Logging;
@@ -39,6 +38,13 @@
         public async Task SeedAsync()
         {
             this.logger.LogDebug("Resolving seed dependencies using topological sort");
+
+            if (this.logger.IsEnabled(LogLevel.Debug))
+            {
+                var visualization = Internal.DependencyResolver.CreateDependencyGraphVisualization(Seeding.Instance.Seeds);
+                this.logger.LogDebug("Dependency Graph Visualization:{NewLine}{Visualization}", Environment.NewLine, visualization);
+            }
+
             var sortedSeeds = Internal.DependencyResolver.ResolveDependencies(Seeding.Instance.Seeds);
 
             if (this.logger.IsEnabled(LogLevel.Debug))
@@ -47,9 +53,7 @@
                 for (var index = 0; index < sortedSeeds.Count; index++)
                 {
                     var seed = sortedSeeds[index];
-                    var dependencies = seed.DependsOnTypes?.Length > 0
-                        ? $" (depends on: {string.Join(", ", seed.DependsOnTypes.Select(t => t.Name))})"
-                        : " (no dependencies)";
+                    var dependencies = GetDependencyDescription(seed);
                     this.logger.LogDebug("{Index}.\t{SeedTypeName}{Dependencies}", index + 1, seed.GetType().Name, dependencies);
                 }
             }
@@ -80,6 +84,27 @@
         {
             var seed = Seeding.Instance.FindSeed<T>();
             await seed.SeedAsync().ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// Gets a description of the seed's dependencies for logging purposes.
+        /// </summary>
+        /// <param name="seed">The seed to describe.</param>
+        /// <returns>A formatted dependency description.</returns>
+        private static string GetDependencyDescription(ISeed seed)
+        {
+            // Check dependencies in priority order
+            if (seed.DependsOnTypes?.Length > 0)
+            {
+                return $" (depends on: {string.Join(", ", System.Linq.Enumerable.Select(seed.DependsOnTypes, t => t.Name))})";
+            }
+
+            if (seed.DependsOnType != null)
+            {
+                return $" (depends on: {seed.DependsOnType.Name})";
+            }
+
+            return " (no dependencies)";
         }
     }
 }
