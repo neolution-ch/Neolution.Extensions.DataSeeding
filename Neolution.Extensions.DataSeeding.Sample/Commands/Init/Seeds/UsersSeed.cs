@@ -23,7 +23,7 @@
         }
 
         /// <inheritdoc />
-        public Type DependsOn => typeof(TenantsSeed);
+        public Type DependsOnType => typeof(TenantsSeed);
 
         /// <inheritdoc />
         public Task SeedAsync()

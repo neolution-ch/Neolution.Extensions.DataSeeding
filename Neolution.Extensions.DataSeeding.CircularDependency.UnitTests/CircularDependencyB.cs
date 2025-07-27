@@ -14,12 +14,6 @@
         /// </summary>
         public Type[] DependsOnTypes { get; } = { typeof(CircularDependencyC) };
 
-        /// <inheritdoc />
-        public Type? DependsOn => null;
-
-        /// <inheritdoc />
-        public int Priority => 0;
-
         /// <summary>
         /// Seeds the data.
         /// </summary>

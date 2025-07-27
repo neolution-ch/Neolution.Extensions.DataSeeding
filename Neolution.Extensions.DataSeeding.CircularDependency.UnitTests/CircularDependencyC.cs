@@ -10,15 +10,9 @@
     public class CircularDependencyC : ISeed
     {
         /// <summary>
-        /// Gets the types this seed depends on.
+        /// Gets the type this seed depends on.
         /// </summary>
-        public Type[] DependsOnTypes { get; } = { typeof(CircularDependencyA) };
-
-        /// <inheritdoc />
-        public Type? DependsOn => null;
-
-        /// <inheritdoc />
-        public int Priority => 0;
+        public Type DependsOnType => typeof(CircularDependencyA);
 
         /// <summary>
         /// Seeds the data.

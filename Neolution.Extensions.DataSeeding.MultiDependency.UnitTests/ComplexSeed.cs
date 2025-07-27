@@ -27,14 +27,6 @@
         /// <inheritdoc />
         public Type[] DependsOnTypes => new[] { typeof(FoundationSeedA), typeof(FoundationSeedB) };
 
-        #pragma warning disable CS0618 // Type or member is obsolete
-        /// <inheritdoc />
-        public Type? DependsOn => null;
-
-        /// <inheritdoc />
-        public int Priority => 0;
-        #pragma warning restore CS0618 // Type or member is obsolete
-
         /// <inheritdoc />
         public Task SeedAsync()
         {

@@ -46,12 +46,6 @@
         public Type[] DependsOnTypes => Array.Empty<Type>();
 
         /// <inheritdoc />
-        public Type? DependsOn => null;
-
-        /// <inheritdoc />
-        public int Priority => 0;
-
-        /// <inheritdoc />
         public async Task SeedAsync()
         {
             this.logger.LogInformation("Executing simple seed");

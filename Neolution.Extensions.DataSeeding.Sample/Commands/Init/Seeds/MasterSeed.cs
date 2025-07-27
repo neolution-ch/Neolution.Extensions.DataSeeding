@@ -21,9 +21,6 @@
             this.logger = logger;
         }
 
-        /// <inheritdoc/>
-        public int Priority => 2;
-
         /// <inheritdoc />
         public Task SeedAsync()
         {

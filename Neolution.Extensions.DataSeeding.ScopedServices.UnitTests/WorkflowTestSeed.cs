@@ -45,14 +45,6 @@
         /// <inheritdoc />
         public Type[] DependsOnTypes => Array.Empty<Type>();
 
-        #pragma warning disable CS0618 // Type or member is obsolete
-        /// <inheritdoc />
-        public Type? DependsOn => null;
-
-        /// <inheritdoc />
-        public int Priority => 0;
-        #pragma warning restore CS0618 // Type or member is obsolete
-
         /// <summary>
         /// Seeds the data asynchronously.
         /// </summary>

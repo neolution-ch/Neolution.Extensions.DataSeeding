@@ -116,13 +116,13 @@
         }
 
         /// <summary>
-        /// Gets the dependencies for a specific seed, supporting both new and legacy dependency properties.
+        /// Gets the dependencies for a specific seed.
         /// </summary>
         /// <param name="seed">The seed to get dependencies for.</param>
         /// <returns>Array of dependency types.</returns>
         private static Type[] GetSeedDependencies(ISeed seed)
         {
-            // Priority order: DependsOnTypes > DependsOnType > DependsOn (legacy)
+            // Priority order: DependsOnTypes > DependsOnType
             if (seed.DependsOnTypes?.Length > 0)
             {
                 return seed.DependsOnTypes;
@@ -133,10 +133,7 @@
                 return new[] { seed.DependsOnType };
             }
 
-            // Fall back to legacy DependsOn property with pragma to suppress obsolete warning
-#pragma warning disable CS0618 // Type or member is obsolete
-            return seed.DependsOn != null ? new[] { seed.DependsOn } : Array.Empty<Type>();
-#pragma warning restore CS0618 // Type or member is obsolete
+            return Array.Empty<Type>();
         }
 
         /// <summary>

@@ -12,12 +12,13 @@ This library aims to help developers to divide the whole data seeding logic of a
 ## Key Features
 
 - **Multi-Dependency Support**: Seeds can depend on multiple other seeds using the `DependsOnTypes` property
-- **Circular Dependency Detection**: Automatic detection of circular dependencies with clear error messages
+- **Simplified Single Dependency**: Use `DependsOnType` for cleaner syntax when you only have one dependency
+- **Pretty-Print Dependency Visualization**: Visual logging of dependency relationships for easier debugging
+- **Circular Dependency Detection**: Automatic detection of circular dependencies with clear error messages and cycle visualization
 - **Advanced Scoped Service Support**: Robust handling of scoped dependencies with proper lifetime management
 - **Topological Sorting**: Intelligent dependency resolution using Kahn's algorithm for optimal execution order  
 - **Service Lifetime Safety**: Prevents common DI issues like ObjectDisposedException and scope validation errors
 - **Abstract Seed Support**: Full support for both `ISeed` interface and `Seed` abstract class implementations
-- **Legacy Compatibility**: Backward compatible with existing Priority and DependsOn properties
 
 ## Getting Started
 
@@ -49,22 +50,43 @@ public class UserSeed : ISeed
 
 In the `SeedAsync()` method you can add your data seeding logic. The seed will be instantiated by the dependency injection container, so you can use the constructor to inject services, including scoped services.
 
-#### Dependency Management
+## Dependency Management
 
-**Multi-Dependencies (Recommended)**: Use the `DependsOnTypes` property to specify multiple dependencies:
+### Multi-Dependencies
+
+Use the `DependsOnTypes` property to specify multiple dependencies:
 
 ```csharp
 public Type[] DependsOnTypes => new[] { typeof(TenantSeed), typeof(RoleSeed) };
 ```
 
-**Legacy Single Dependency**: The `DependsOn` property is still supported but deprecated:
+### Single Dependency (Simplified Syntax)
+
+For seeds that depend on only one other seed, you can use the cleaner `DependsOnType` property:
 
 ```csharp
-[Obsolete("Use DependsOnTypes property instead for multiple dependency support.")]
-public Type? DependsOn => typeof(TenantSeed);
+public class UserSeed : ISeed
+{
+    public Type? DependsOnType => typeof(TenantSeed);
+    
+    public Task SeedAsync()
+    {
+        // Your seeding logic here
+        return Task.CompletedTask;
+    }
+}
 ```
 
-#### Scoped Service Injection
+### Dependency Priority Order
+
+The dependency resolver supports multiple ways to declare dependencies with the following priority order:
+
+1. **DependsOnTypes** (highest priority) - For multiple dependencies
+2. **DependsOnType** (medium priority) - For single dependency
+
+If both properties are specified, `DependsOnTypes` takes precedence.
+
+### Scoped Service Injection
 
 The library provides **enterprise-grade scoped service support** with proper lifecycle management:
 
@@ -149,9 +171,37 @@ public class DataInitializer
 
 ## Advanced Features
 
+### Pretty-Print Dependency Visualization
+
+The seeder automatically logs a visual representation of dependency relationships to help debug complex dependency trees:
+
+```text
+Dependency Graph:
+================
+◦ TenantSeed (no dependencies)
+◦ RoleSeed (no dependencies)
+◦ UserSeed
+  └─ depends on: TenantSeed
+◦ PermissionSeed
+  └─ depends on: RoleSeed
+◦ UserPermissionSeed
+  └─ depends on: UserSeed
+  └─ depends on: PermissionSeed
+
+Execution Order (topologically sorted):
+=======================================
+1. TenantSeed
+2. RoleSeed
+3. UserSeed
+4. PermissionSeed
+5. UserPermissionSeed
+```
+
+This visualization is automatically logged when seeding runs, making it easy to understand the dependency relationships and execution order.
+
 ### Circular Dependency Detection
 
-The library automatically detects circular dependencies and throws meaningful error messages:
+The library automatically detects circular dependencies of any complexity and provides detailed error messages:
 
 ```csharp
 // This will throw an InvalidOperationException with details about the circular dependency
@@ -167,6 +217,14 @@ public class SeedB : ISeed
     // ...
 }
 ```
+
+The system detects:
+
+- Simple cycles: A → B → A
+- Complex cycles: A → B → C → A
+- Multi-level cycles: A → B → C → D → A
+
+When circular dependencies are detected, a detailed error message is logged showing the complete cycle path.
 
 ### Complex Dependency Scenarios
 
@@ -220,53 +278,76 @@ public class DatabaseSeed : ISeed
 - **Transaction Safety**: Database contexts and other scoped services maintain proper transaction boundaries
 - **Error Prevention**: Eliminates ObjectDisposedException and scope validation errors
 
-### Execution Order Logging
+### Execution Order and Dependency Visualization
 
-The library provides detailed logging of the execution order:
+The library provides comprehensive logging of dependency resolution and execution order. The dependency visualization is automatically logged when seeding runs, showing both the dependency graph and the resolved execution order:
 
 ```text
-[Debug] Dependency resolution completed. Seeds will be executed in the following order:
-[Debug] 1. TenantSeed (no dependencies)
-[Debug] 2. RoleSeed (no dependencies) 
-[Debug] 3. PermissionSeed (depends on: RoleSeed)
-[Debug] 4. UserSeed (depends on: TenantSeed, RoleSeed)
-[Debug] 5. ComplexSeed (depends on: TenantSeed, RoleSeed, PermissionSeed)
+[Info] Dependency Graph:
+[Info] ================
+[Info] ◦ TenantSeed (no dependencies)
+[Info] ◦ RoleSeed (no dependencies) 
+[Info] ◦ PermissionSeed
+[Info]   └─ depends on: RoleSeed
+[Info] ◦ UserSeed
+[Info]   └─ depends on: TenantSeed
+[Info]   └─ depends on: RoleSeed
+[Info] ◦ ComplexSeed
+[Info]   └─ depends on: TenantSeed
+[Info]   └─ depends on: RoleSeed
+[Info]   └─ depends on: PermissionSeed
+[Info] 
+[Info] Execution Order (topologically sorted):
+[Info] =======================================
+[Info] 1. TenantSeed
+[Info] 2. RoleSeed
+[Info] 3. PermissionSeed
+[Info] 4. UserSeed
+[Info] 5. ComplexSeed
 ```
 
-## Migration Guide
+This makes it easy to understand and debug complex dependency chains.
 
-### From Priority-based to Dependency-based
-
-**Old approach (deprecated):**
+## Example Usage
 
 ```csharp
-public class UserSeed : ISeed
+// Base seed with no dependencies
+public class UserRolesSeed : ISeed
 {
-    public int Priority => 2; // Will be executed after priority 1
+    public Task SeedAsync()
+    {
+        // Seed user roles
+        return Task.CompletedTask;
+    }
 }
-```
 
-**New approach (recommended):**
-
-```csharp
-public class UserSeed : ISeed
+// Seed that depends on UserRolesSeed (using simplified syntax)
+public class UsersSeed : ISeed
 {
-    public Type[] DependsOnTypes => new[] { typeof(TenantSeed) };
+    public Type? DependsOnType => typeof(UserRolesSeed);
+    
+    public Task SeedAsync()
+    {
+        // Seed users (requires roles to exist first)
+        return Task.CompletedTask;
+    }
 }
-```
 
-### From Single to Multiple Dependencies
-
-**Old approach (deprecated):**
-
-```csharp
-public Type? DependsOn => typeof(TenantSeed);
-```
-
-**New approach:**
-
-```csharp
-public Type[] DependsOnTypes => new[] { typeof(TenantSeed), typeof(RoleSeed) };
+// Seed with multiple dependencies
+public class UserPermissionsSeed : ISeed
+{
+    public Type[] DependsOnTypes => new[] 
+    { 
+        typeof(UsersSeed), 
+        typeof(PermissionsSeed) 
+    };
+    
+    public Task SeedAsync()
+    {
+        // Seed user permissions (requires both users and permissions)
+        return Task.CompletedTask;
+    }
+}
 ```
 
 ## Samples
