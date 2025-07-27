@@ -2,7 +2,6 @@
 {
     using System;
     using System.Collections.Generic;
-    using System.Diagnostics.CodeAnalysis;
     using System.Threading.Tasks;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Logging;
@@ -10,7 +9,6 @@
     using Neolution.Extensions.DataSeeding.Internal;
 
     /// <inheritdoc cref="ISeeder" />
-    [SuppressMessage("Microsoft.Performance", "CA1812:AvoidUninstantiatedInternalClasses", Justification = "Resolved as a transient by DI container")]
     internal sealed class Seeder : ISeeder
     {
         /// <summary>
