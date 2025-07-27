@@ -1,4 +1,4 @@
-﻿namespace Neolution.Extensions.DataSeeding.UnitTests
+namespace Neolution.Extensions.DataSeeding.UnitTests
 {
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Logging;
@@ -63,7 +63,6 @@
 
             // Register the scoped service with dependency to test UserManager-like scenarios
             services.AddScoped<IFakeScopedServiceWithDependency, FakeScopedServiceWithDependency>();
-
             return services;
         }
     }
