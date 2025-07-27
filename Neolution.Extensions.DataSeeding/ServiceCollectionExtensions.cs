@@ -23,6 +23,7 @@
             services.Scan(scan => scan
                 .FromAssemblies(assembly)
                 .AddClasses(classes => classes.AssignableTo<ISeed>())
+                .AsSelf()
                 .AsImplementedInterfaces()
                 .WithTransientLifetime());
 
@@ -30,6 +31,7 @@
             services.Scan(scan => scan
                 .FromAssemblies(assembly)
                 .AddClasses(classes => classes.AssignableTo<Seed>())
+                .AsSelf()
                 .As<Seed>()
                 .WithTransientLifetime());
         }

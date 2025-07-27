@@ -2,14 +2,13 @@
 {
     using System;
     using System.Collections.Generic;
-    using System.Diagnostics.CodeAnalysis;
     using System.Threading.Tasks;
+    using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Logging;
     using Neolution.Extensions.DataSeeding.Abstractions;
     using Neolution.Extensions.DataSeeding.Internal;
 
     /// <inheritdoc cref="ISeeder" />
-    [SuppressMessage("Microsoft.Performance", "CA1812:AvoidUninstantiatedInternalClasses", Justification = "Resolved as a singleton by DI container")]
     internal sealed class Seeder : ISeeder
     {
         /// <summary>
@@ -59,9 +58,19 @@
             }
 
             this.logger.LogDebug("Start seeding...");
-            foreach (var seed in sortedSeeds)
+
+            // Create a scope to handle scoped dependencies and resolve fresh seeds
+            using (var scope = Seeding.Instance.CreateScope())
             {
-                await seed.SeedAsync().ConfigureAwait(false);
+                // Resolve fresh instances of seeds within the scope to handle scoped dependencies
+                foreach (var seed in sortedSeeds)
+                {
+                    // Get a fresh instance of the seed from the scoped service provider
+                    // Use the concrete type to ensure proper resolution
+                    var seedType = seed.GetType();
+                    var scopedSeed = (ISeed)scope.ServiceProvider.GetRequiredService(seedType);
+                    await scopedSeed.SeedAsync().ConfigureAwait(false);
+                }
             }
 
             this.logger.LogDebug("All seeds have been seeded!");

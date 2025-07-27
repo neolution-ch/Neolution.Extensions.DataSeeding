@@ -25,6 +25,11 @@
         private Assembly? seedsAssembly;
 
         /// <summary>
+        /// The service provider.
+        /// </summary>
+        private IServiceProvider? serviceProvider;
+
+        /// <summary>
         /// The seeds
         /// </summary>
         private IReadOnlyList<Seed> seeds = Enumerable.Empty<Seed>().ToList();
@@ -50,7 +55,7 @@
         /// Configures the services with the internal dependency injection container and scans the specified assembly for data seeds.
         /// </summary>
         /// <param name="assembly">The assembly containing the <see cref="ISeed"/> implementations.</param>
-        public void Configure(Assembly assembly)
+        internal void Configure(Assembly assembly)
         {
             this.seedsAssembly = assembly;
         }
@@ -66,6 +71,9 @@
                 throw new InvalidOperationException("Cannot find the assembly containing the seeds. Did you call the Configure() method before calling this?");
             }
 
+            // Store the service provider for creating scopes during execution
+            this.serviceProvider = serviceProvider;
+
             var logger = serviceProvider.GetRequiredService<ILogger<Seeding>>();
 
             if (logger.IsEnabled(LogLevel.Trace))
@@ -74,9 +82,13 @@
                 logger.LogTrace("Assembly full name: '{SeedsAssemblyFullName}'", this.seedsAssembly.FullName);
             }
 
-            // Resolve all seeds that are registered
-            this.Seeds = serviceProvider.GetServices<ISeed>().ToList();
-            this.seeds = serviceProvider.GetServices<Seed>().ToList();
+            // Resolve all seeds that are registered (temporarily for dependency analysis)
+            // Use a temporary scope to handle scoped dependencies during analysis
+            using (var tempScope = serviceProvider.CreateScope())
+            {
+                this.Seeds = tempScope.ServiceProvider.GetServices<ISeed>().ToList();
+                this.seeds = tempScope.ServiceProvider.GetServices<Seed>().ToList();
+            } // Dispose the temporary scope - seeds will be resolved fresh during execution
 
             logger.LogDebug("{SeedsCount} seeds have been found and loaded", this.Seeds.Count + this.seeds.Count);
             logger.LogTrace("{SeedCount} ISeed implementations found", this.Seeds.Count);
@@ -120,6 +132,20 @@
             where T : Seed
         {
             return this.seeds.Single(x => x.GetType() == typeof(T));
+        }
+
+        /// <summary>
+        /// Creates a new service scope for seed execution.
+        /// </summary>
+        /// <returns>A new service scope.</returns>
+        internal IServiceScope CreateScope()
+        {
+            if (this.serviceProvider is null)
+            {
+                throw new InvalidOperationException("Service provider not configured. Call UseServiceProvider first.");
+            }
+
+            return this.serviceProvider.CreateScope();
         }
 
         /// <summary>
