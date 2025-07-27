@@ -1,26 +1,18 @@
 ﻿namespace Neolution.Extensions.DataSeeding
 {
     using System;
-    using System.Diagnostics.CodeAnalysis;
     using System.Threading.Tasks;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Logging;
     using Neolution.Extensions.DataSeeding.Abstractions;
-    using Neolution.Extensions.DataSeeding.Internal;
 
     /// <inheritdoc cref="ISeeder" />
-    [SuppressMessage("Microsoft.Performance", "CA1812:AvoidUninstantiatedInternalClasses", Justification = "Resolved as a singleton by DI container")]
     internal sealed class Seeder : ISeeder
     {
         /// <summary>
         /// The logger.
         /// </summary>
         private readonly ILogger<Seeder> logger;
-
-        /// <summary>
-        /// The service provider.
-        /// </summary>
-        private readonly IServiceProvider serviceProvider;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Seeder" /> class.
@@ -30,7 +22,6 @@
         public Seeder(IServiceProvider serviceProvider, ILogger<Seeder> logger)
         {
             this.logger = logger;
-            this.serviceProvider = serviceProvider;
             Seeding.Instance.UseServiceProvider(serviceProvider);
         }
 
@@ -61,7 +52,7 @@
             this.logger.LogDebug("Start seeding...");
 
             // Create a scope to handle scoped dependencies and resolve fresh seeds
-            using (var scope = this.serviceProvider.CreateScope())
+            using (var scope = Seeding.Instance.CreateScope())
             {
                 // Resolve fresh instances of seeds within the scope to handle scoped dependencies
                 foreach (var seed in sortedSeeds)

@@ -24,6 +24,11 @@
         private Assembly? seedsAssembly;
 
         /// <summary>
+        /// The service provider.
+        /// </summary>
+        private IServiceProvider? serviceProvider;
+
+        /// <summary>
         /// The seeds
         /// </summary>
         private IReadOnlyList<Seed> seeds = Enumerable.Empty<Seed>().ToList();
@@ -49,7 +54,7 @@
         /// Configures the services with the internal dependency injection container and scans the specified assembly for data seeds.
         /// </summary>
         /// <param name="assembly">The assembly containing the <see cref="ISeed"/> implementations.</param>
-        public void Configure(Assembly assembly)
+        internal void Configure(Assembly assembly)
         {
             this.seedsAssembly = assembly;
         }
@@ -64,6 +69,9 @@
             {
                 throw new InvalidOperationException("Cannot find the assembly containing the seeds. Did you call the Configure() method before calling this?");
             }
+
+            // Store the service provider for creating scopes during execution
+            this.serviceProvider = serviceProvider;
 
             var logger = serviceProvider.GetRequiredService<ILogger<Seeding>>();
 
@@ -97,6 +105,20 @@
             where T : Seed
         {
             return this.seeds.Single(x => x.GetType() == typeof(T));
+        }
+
+        /// <summary>
+        /// Creates a new service scope for seed execution.
+        /// </summary>
+        /// <returns>A new service scope.</returns>
+        internal IServiceScope CreateScope()
+        {
+            if (this.serviceProvider is null)
+            {
+                throw new InvalidOperationException("Service provider not configured. Call UseServiceProvider first.");
+            }
+
+            return this.serviceProvider.CreateScope();
         }
     }
 }
