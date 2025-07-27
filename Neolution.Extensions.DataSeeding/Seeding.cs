@@ -25,6 +25,11 @@
         private Assembly? seedsAssembly;
 
         /// <summary>
+        /// The service provider.
+        /// </summary>
+        private IServiceProvider? serviceProvider;
+
+        /// <summary>
         /// The seeds
         /// </summary>
         private IReadOnlyList<Seed> seeds = Enumerable.Empty<Seed>().ToList();
@@ -65,6 +70,9 @@
             {
                 throw new InvalidOperationException("Cannot find the assembly containing the seeds. Did you call the Configure() method before calling this?");
             }
+
+            // Store the service provider for creating scopes during execution
+            this.serviceProvider = serviceProvider;
 
             var logger = serviceProvider.GetRequiredService<ILogger<Seeding>>();
 
@@ -124,6 +132,20 @@
             where T : Seed
         {
             return this.seeds.Single(x => x.GetType() == typeof(T));
+        }
+
+        /// <summary>
+        /// Creates a new service scope for seed execution.
+        /// </summary>
+        /// <returns>A new service scope.</returns>
+        internal IServiceScope CreateScope()
+        {
+            if (this.serviceProvider is null)
+            {
+                throw new InvalidOperationException("Service provider not configured. Call UseServiceProvider first.");
+            }
+
+            return this.serviceProvider.CreateScope();
         }
 
         /// <summary>
