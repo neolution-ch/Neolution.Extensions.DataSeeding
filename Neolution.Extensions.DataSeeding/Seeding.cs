@@ -1,4 +1,4 @@
-namespace Neolution.Extensions.DataSeeding
+﻿namespace Neolution.Extensions.DataSeeding
 {
     using System;
     using System.Collections.Generic;
@@ -50,7 +50,7 @@ namespace Neolution.Extensions.DataSeeding
         /// Configures the services with the internal dependency injection container and scans the specified assembly for data seeds.
         /// </summary>
         /// <param name="assembly">The assembly containing the <see cref="ISeed"/> implementations.</param>
-        public void Configure(Assembly assembly)
+        internal void Configure(Assembly assembly)
         {
             this.seedsAssembly = assembly;
         }

@@ -10,7 +10,7 @@
     using Neolution.Extensions.DataSeeding.Internal;
 
     /// <inheritdoc cref="ISeeder" />
-    [SuppressMessage("Microsoft.Performance", "CA1812:AvoidUninstantiatedInternalClasses", Justification = "Resolved as a singleton by DI container")]
+    [SuppressMessage("Microsoft.Performance", "CA1812:AvoidUninstantiatedInternalClasses", Justification = "Resolved as a transient by DI container")]
     internal sealed class Seeder : ISeeder
     {
         /// <summary>
