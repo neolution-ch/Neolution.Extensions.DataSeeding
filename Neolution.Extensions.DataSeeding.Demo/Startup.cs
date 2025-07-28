@@ -14,7 +14,7 @@
         [System.Diagnostics.CodeAnalysis.SuppressMessage("SonarLint", "S2325", Justification = "Method is part of ICompositionRoot interface contract")]
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddDataSeeding(typeof(Startup).Assembly);
+            services.AddDataSeeding();
         }
     }
 }

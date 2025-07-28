@@ -24,10 +24,20 @@ We've all been there - your data seeding code starts simple but grows into a mon
 For Microsoft Dependency Injection:
 
 ```csharp
+services.AddDataSeeding();
+```
+
+This automatically scans the calling assembly for `ISeed` implementations and prepares them for ordered execution.
+
+#### Advanced Usage
+
+If your seeds are in a different assembly than the one calling the registration, use the explicit overload:
+
+```csharp
 services.AddDataSeeding(typeof(Startup).Assembly);
 ```
 
-This scans the assembly for `ISeed` implementations and prepares them for ordered execution.
+**Note**: The parameterless overload is preferred for most scenarios. Only use the assembly parameter when seeds are located in a different project/assembly.
 
 ### The `ISeed` interface
 

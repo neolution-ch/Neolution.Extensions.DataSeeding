@@ -98,6 +98,7 @@ dotnet run init
 Each seed follows a consistent pattern:
 
 ```csharp
+[DependsOn(typeof(DependencySeed))]
 public class ExampleSeed : ISeed
 {
     private readonly ILogger<ExampleSeed> logger;
@@ -106,11 +107,6 @@ public class ExampleSeed : ISeed
     {
         this.logger = logger;
     }
-
-    public Type[] DependsOnTypes => new[]
-    {
-        typeof(DependencySeed),
-    };
 
     public async Task SeedAsync()
     {
@@ -128,10 +124,12 @@ The demo uses standard .NET dependency injection configured in `Startup.cs`:
 ```csharp
 public void ConfigureServices(IServiceCollection services)
 {
-    services.AddDataSeeding(typeof(Startup).Assembly);
+    services.AddDataSeeding();
     // Additional service registrations...
 }
 ```
+
+**Note**: The parameterless `AddDataSeeding()` method automatically detects seeds in the calling assembly. For cross-assembly scenarios, use `AddDataSeeding(assembly)`.
 
 ## What You'll Learn
 
@@ -147,7 +145,7 @@ By studying this demo, you'll understand:
 You can easily add your own seeds by:
 
 1. Creating a new class implementing `ISeed`
-2. Declaring dependencies in `DependsOnTypes`
+2. Adding `[DependsOn(typeof(...))]` attributes for dependencies  
 3. Implementing the `SeedAsync()` method
 4. Running the demo to see your seed in the execution order
 

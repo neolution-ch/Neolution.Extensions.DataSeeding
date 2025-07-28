@@ -13,7 +13,17 @@
         /// Adds the data seeding functionality to the service collection.
         /// </summary>
         /// <param name="services">The services.</param>
-        /// <param name="assembly">The assembly.</param>
+        public static void AddDataSeeding(this IServiceCollection services)
+        {
+            var assembly = Assembly.GetCallingAssembly();
+            AddDataSeeding(services, assembly);
+        }
+
+        /// <summary>
+        /// Adds the data seeding functionality to the service collection.
+        /// </summary>
+        /// <param name="services">The services.</param>
+        /// <param name="assembly">The assembly containing the seed implementations.</param>
         public static void AddDataSeeding(this IServiceCollection services, Assembly assembly)
         {
             services.AddTransient<ISeeder, Seeder>();
@@ -26,8 +36,6 @@
                 .AsSelf()
                 .AsImplementedInterfaces()
                 .WithTransientLifetime());
-
-            // All ISeed implementations are already registered above
         }
     }
 }
