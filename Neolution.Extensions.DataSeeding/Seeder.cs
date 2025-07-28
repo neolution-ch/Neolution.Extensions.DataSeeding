@@ -1,12 +1,11 @@
 ﻿namespace Neolution.Extensions.DataSeeding
 {
     using System;
-    using System.Collections.Generic;
+    using System.Linq;
     using System.Threading.Tasks;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Logging;
     using Neolution.Extensions.DataSeeding.Abstractions;
-    using Neolution.Extensions.DataSeeding.Internal;
 
     /// <inheritdoc cref="ISeeder" />
     internal sealed class Seeder : ISeeder
@@ -30,30 +29,18 @@
         /// <inheritdoc />
         public async Task SeedAsync()
         {
-            this.logger.LogDebug("Determine seeding dependencies and wrap the seeds up accordingly");
-            var wraps = Seeding.Instance.WrapSeeds();
+            this.logger.LogDebug("Resolving seed dependencies using topological sort");
+
+            var sortedSeeds = Internal.DependencyResolver.ResolveDependencies(Seeding.Instance.Seeds);
 
             if (this.logger.IsEnabled(LogLevel.Debug))
             {
-                this.logger.LogDebug("Resolved dependency tree of the seeds:");
-                for (var index = 0; index < wraps.Count; index++)
-                {
-                    var wrap = wraps[index];
-                    this.LogWrapTree(wrap, index == wrap.Wrapped.Count - 1);
-                }
-            }
-
-            this.logger.LogTrace("Create a list of sorted seeds based on the dependency tree");
-            var sortedSeeds = new List<ISeed>();
-            Seeding.Instance.RecursiveUnwrap(wraps, sortedSeeds);
-
-            if (this.logger.IsEnabled(LogLevel.Trace))
-            {
-                this.logger.LogTrace("The seeds will be seeded in the following order:");
+                this.logger.LogDebug("Dependency resolution completed. Seeds will be executed in the following order:");
                 for (var index = 0; index < sortedSeeds.Count; index++)
                 {
                     var seed = sortedSeeds[index];
-                    this.logger.LogTrace("{Index}.\t{SeedTypeName}", index + 1, seed.GetType().Name);
+                    var dependencies = GetDependencyDescription(seed);
+                    this.logger.LogDebug("{Index}. {SeedTypeName}{Dependencies}", index + 1, seed.GetType().Name, dependencies);
                 }
             }
 
@@ -69,6 +56,7 @@
                     // Use the concrete type to ensure proper resolution
                     var seedType = seed.GetType();
                     var scopedSeed = (ISeed)scope.ServiceProvider.GetRequiredService(seedType);
+                    this.logger.LogTrace("Executing seed: {SeedTypeName}", scopedSeed.GetType().Name);
                     await scopedSeed.SeedAsync().ConfigureAwait(false);
                 }
             }
@@ -76,38 +64,21 @@
             this.logger.LogDebug("All seeds have been seeded!");
         }
 
-        /// <inheritdoc />
-        public async Task SeedAsync<T>()
-            where T : Seed
-        {
-            var seed = Seeding.Instance.FindSeed<T>();
-            await seed.SeedAsync().ConfigureAwait(false);
-        }
-
         /// <summary>
-        /// Logs the wrap tree in a pretty format.
+        /// Gets a description of the seed's dependencies for logging purposes.
         /// </summary>
-        /// <param name="wrap">The wrap.</param>
-        /// <param name="last">if set to <c>true</c> it's the last wrap.</param>
-        /// <param name="indent">The indent.</param>
-        private void LogWrapTree(Wrap wrap, bool last, string indent = "")
+        /// <param name="seed">The seed to describe.</param>
+        /// <returns>A formatted dependency description.</returns>
+        private static string GetDependencyDescription(ISeed seed)
         {
-            var seedTypeName = wrap.SeedType?.Name ?? string.Empty;
+            var dependencies = Internal.DependencyResolver.GetSeedDependencies(seed);
 
-            // Shorten the seed type name if it was suffixed with "Seed"
-            const string suffix = "Seed";
-            if (seedTypeName.EndsWith(suffix, StringComparison.OrdinalIgnoreCase))
+            if (dependencies.Length > 0)
             {
-                seedTypeName = seedTypeName[..^suffix.Length];
+                return $" (depends on: {string.Join(", ", dependencies.Select(t => t.Name))})";
             }
 
-            this.logger.LogDebug("{Indent}+- {SeedTypeName}", indent, seedTypeName);
-            indent += last ? "   " : "|  ";
-
-            for (var i = 0; i < wrap.Wrapped.Count; i++)
-            {
-                this.LogWrapTree(wrap.Wrapped[i], i == wrap.Wrapped.Count - 1, indent);
-            }
+            return " (no dependencies)";
         }
     }
 }

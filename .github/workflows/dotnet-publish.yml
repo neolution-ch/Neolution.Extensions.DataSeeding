@@ -3,14 +3,14 @@ name: Publish NuGet package
 
 on:
   push:
-    tags: 
+    tags:
       - 'v*.*.*'
   workflow_dispatch:
 
 env:
   ARTIFACTS_FEED_URL: https://api.nuget.org/v3/index.json
   BUILD_CONFIGURATION: "Release"
-  DOTNET_VERSION: "6.x"
+  DOTNET_VERSION: "8.x"
 
 jobs:
   build-and-deploy:
@@ -28,14 +28,14 @@ jobs:
           source-url: ${{ env.ARTIFACTS_FEED_URL }}
         env:
           NUGET_AUTH_TOKEN: ${{ secrets.NUGET_API_KEY_NEOLUTION }}
-      
+
       - name: Install GitVersion
         uses: gittools/actions/gitversion/setup@v0.9.7
         with:
           versionSpec: '5.10.3'
-          
+
       - name: Determine version number
-        uses: gittools/actions/gitversion/execute@v0.9.7  
+        uses: gittools/actions/gitversion/execute@v0.9.7
 
       - name: Build and pack
         run: |
