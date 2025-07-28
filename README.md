@@ -140,33 +140,6 @@ public class UserSeed : ISeed
 - Scoped services are automatically disposed after execution
 - Prevents ObjectDisposedException and scope validation errors
 
-### The `Seed` Abstract Class (Being Deprecated)
-
-> **⚠️ Deprecation Notice**: The abstract `Seed` class is being phased out and will be removed in a future release. New code should use the `ISeed` interface instead. We recommend migrating existing seeds to `ISeed` for better testability and cleaner dependency injection.
-
-For legacy seeds that need manual execution, inherit from the abstract `Seed` class:
-
-```csharp
-public class ManualSeed : Seed
-{
-    private readonly ILogger<ManualSeed> logger;
-
-    public ManualSeed(ILogger<ManualSeed> logger)
-    {
-        this.logger = logger;
-    }
-
-    public override async Task SeedAsync()
-    {
-        this.logger.LogInformation("Manual seed executed");
-        // Your seeding logic here
-    }
-}
-
-// Manual execution via ISeeder
-await seeder.SeedAsync<ManualSeed>();
-```
-
 ### The `ISeeder` interface
 
 Resolve `ISeeder` from the service provider to execute seeds:
