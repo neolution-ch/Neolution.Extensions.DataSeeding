@@ -2,16 +2,6 @@
   "version": 1,
   "dependencies": {
     "net8.0": {
-      "AWS.Logger.NLog": {
-        "type": "Direct",
-        "requested": "[3.1.0, )",
-        "resolved": "3.1.0",
-        "contentHash": "eDS/rjV7Kubyc6diXHEvhkrBti3/ItkSuKtPduNC8Ab3W23GIjMUzg1irWn1Y7KHXr3CI4d48Cfpb6ut2eelog==",
-        "dependencies": {
-          "AWS.Logger.Core": "3.1.0",
-          "NLog": "4.5.0"
-        }
-      },
       "Microsoft.Extensions.Configuration.UserSecrets": {
         "type": "Direct",
         "requested": "[8.*, )",
@@ -65,27 +55,6 @@
           "NLog.Extensions.Logging": "5.3.15",
           "Scrutor": "6.0.1"
         }
-      },
-      "AWS.Logger.Core": {
-        "type": "Transitive",
-        "resolved": "3.1.0",
-        "contentHash": "ruKBNASE/IBnVZhyeUy0ueuxq1CuMtDHNpU2cqGUg12SxvClkqqY/PVXyM6I4ltsMh/1tF8WdpTBj9k3Fw/PgA==",
-        "dependencies": {
-          "AWSSDK.CloudWatchLogs": "3.7.0.5"
-        }
-      },
-      "AWSSDK.CloudWatchLogs": {
-        "type": "Transitive",
-        "resolved": "3.7.0.5",
-        "contentHash": "E9mEMaCVStnkzrs2gb35AbMz8xEGCqMGSnk+yyFJbkmdu9a+w5MVsuwRMkHbqiKn1bs5FTpdQJlV/NtgSYeHbA==",
-        "dependencies": {
-          "AWSSDK.Core": "[3.7.0.6, 3.8.0)"
-        }
-      },
-      "AWSSDK.Core": {
-        "type": "Transitive",
-        "resolved": "3.7.0.6",
-        "contentHash": "2oHC7TTLUjwVIvyS3CmCGvDPpgfrm/2FrjRwB/jUPEGreHpGkvTZHgcWbiD9QkLx1BLWJMpP+jww7CXbTuZZXQ=="
       },
       "CommandLineParser": {
         "type": "Transitive",

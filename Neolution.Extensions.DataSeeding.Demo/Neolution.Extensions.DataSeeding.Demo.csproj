@@ -7,7 +7,6 @@
     <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="AWS.Logger.NLog" Version="3.1.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="8.*" />
     <PackageReference Include="Microsoft.Extensions.Logging" Version="8.*" />
     <PackageReference Include="Neolution.DotNet.Console" Version="5.0.0" />
