@@ -1,0 +1,38 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <UserSecretsId>0BF50422-E767-4A00-8B67-38947EC07377</UserSecretsId>
+    <LangVersion>default</LangVersion>
+    <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="8.*" />
+    <PackageReference Include="Microsoft.Extensions.Logging" Version="8.*" />
+    <PackageReference Include="Neolution.DotNet.Console" Version="5.0.0" />
+    <PackageReference Include="Neolution.CodeAnalysis" Version="3.2.1">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Neolution.Extensions.DataSeeding\Neolution.Extensions.DataSeeding.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Update="appsettings.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="appsettings.Development.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="appsettings.Production.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <EditorConfigFiles Remove="C:\Users\SandroCiervo\source\repos\neolution-ch\Neolution.Extensions.DataSeeding\Neolution.Extensions.DataSeeding.Demo\.editorconfig" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="C:\Users\SandroCiervo\source\repos\neolution-ch\Neolution.Extensions.DataSeeding\Neolution.Extensions.DataSeeding.Demo\.editorconfig" />
+  </ItemGroup>
+</Project>

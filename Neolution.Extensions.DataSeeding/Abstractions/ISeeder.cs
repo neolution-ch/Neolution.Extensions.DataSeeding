@@ -9,17 +9,9 @@
     public interface ISeeder
     {
         /// <summary>
-        /// Seeds the specified seed component.
+        /// Seeds all registered seed components in dependency order.
         /// </summary>
         /// <returns>The <see cref="Task"/>.</returns>
         Task SeedAsync();
-
-        /// <summary>
-        /// Seeds the specified seed component.
-        /// </summary>
-        /// <typeparam name="T">The seed type.</typeparam>
-        /// <returns>The <see cref="Task"/>.</returns>
-        Task SeedAsync<T>()
-            where T : Seed;
     }
 }
