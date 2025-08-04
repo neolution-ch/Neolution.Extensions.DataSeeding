@@ -38,10 +38,7 @@
         /// <returns>Array of dependency types.</returns>
         internal static Type[] GetSeedDependencies(ISeed seed)
         {
-            if (seed == null)
-            {
-                throw new ArgumentNullException(nameof(seed));
-            }
+            ArgumentNullException.ThrowIfNull(seed);
 
             var seedType = seed.GetType();
 
@@ -62,12 +59,12 @@
         /// <param name="seedList">The list of seeds to process.</param>
         /// <param name="seedLookup">Dictionary for fast seed lookup by type.</param>
         /// <returns>A tuple containing the dependency graph and in-degree counts.</returns>
-        private static (SeedGraph Graph, InDegreeMap InDegree) BuildDependencyGraph(
+        private static (SeedGraph Graph, IDictionary<ISeed, int> InDegree) BuildDependencyGraph(
             IList<ISeed> seedList,
-            Dictionary<Type, ISeed> seedLookup)
+            IDictionary<Type, ISeed> seedLookup)
         {
             var graph = new SeedGraph();
-            var inDegree = new InDegreeMap();
+            var inDegree = new Dictionary<ISeed, int>();
 
             // Initialize graph and in-degree for all seeds
             foreach (var seed in seedList)
@@ -97,9 +94,9 @@
         private static void AddDependenciesToGraph(
             ISeed seed,
             Type[] dependencies,
-            Dictionary<Type, ISeed> seedLookup,
+            IDictionary<Type, ISeed> seedLookup,
             SeedGraph graph,
-            InDegreeMap inDegree)
+            IDictionary<ISeed, int> inDegree)
         {
             foreach (var dependencyType in dependencies)
             {
@@ -119,10 +116,7 @@
         /// <param name="graph">The dependency graph.</param>
         /// <param name="inDegree">The in-degree count for each seed.</param>
         /// <returns>The seeds sorted in execution order.</returns>
-        private static List<ISeed> ProcessTopologicalSort(
-            IList<ISeed> seedList,
-            SeedGraph graph,
-            InDegreeMap inDegree)
+        private static List<ISeed> ProcessTopologicalSort(IList<ISeed> seedList, SeedGraph graph, IDictionary<ISeed, int> inDegree)
         {
             var result = new List<ISeed>();
             var queue = new Queue<ISeed>();
@@ -159,29 +153,24 @@
         /// <summary>
         /// Validates that no circular dependencies exist by checking if all seeds were processed.
         /// </summary>
-        /// <param name="seedList">The original list of seeds.</param>
-        /// <param name="result">The processed seeds from topological sort.</param>
+        /// <param name="originalSeeds">The original list of seeds.</param>
+        /// <param name="sortedSeeds">The processed seeds from topological sort.</param>
         /// <exception cref="InvalidOperationException">Thrown when circular dependencies are detected.</exception>
-        private static void ValidateNoCycles(IList<ISeed> seedList, List<ISeed> result)
+        private static void ValidateNoCycles(ICollection<ISeed> originalSeeds, ICollection<ISeed> sortedSeeds)
         {
-            if (result.Count != seedList.Count)
+            if (sortedSeeds.Count == originalSeeds.Count)
             {
-                var unprocessedSeeds = seedList.Except(result).Select(s => s.GetType().Name);
-                throw new InvalidOperationException($"Circular dependency detected among seeds: {string.Join(", ", unprocessedSeeds)}");
+                return;
             }
+
+            var unprocessedSeeds = originalSeeds.Except(sortedSeeds).Select(s => s.GetType().Name);
+            throw new InvalidOperationException($"Circular dependency detected among seeds: {string.Join(", ", unprocessedSeeds)}");
         }
 
         /// <summary>
         /// Helper class to wrap seed dependency graph to avoid nested generic types (S4017).
         /// </summary>
         private sealed class SeedGraph : Dictionary<ISeed, List<ISeed>>
-        {
-        }
-
-        /// <summary>
-        /// Helper class to wrap in-degree mapping to avoid nested generic types (S4017).
-        /// </summary>
-        private sealed class InDegreeMap : Dictionary<ISeed, int>
         {
         }
     }

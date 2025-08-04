@@ -76,10 +76,32 @@
                 logger.LogTrace("Assembly full name: '{SeedsAssemblyFullName}'", this.seedsAssembly.FullName);
             }
 
-            using (var tempScope = serviceProvider.CreateScope())
+            using (var seedResolveScope = serviceProvider.CreateScope())
             {
-                var allSeeds = tempScope.ServiceProvider.GetServices<ISeed>().ToList();
-                this.Seeds = allSeeds.Where(seed => seed.GetType().Assembly == this.seedsAssembly).ToList();
+                var seeds = seedResolveScope.ServiceProvider.GetServices<ISeed>().ToList();
+
+                // Check for duplicate seed types immediately after collection
+                var seedTypes = seeds.Select(seed => seed.GetType()).ToList();
+                var duplicateTypes = seedTypes.GroupBy(type => type)
+                    .Where(group => group.Count() > 1)
+                    .Select(group => group.Key)
+                    .ToList();
+
+                if (duplicateTypes.Any())
+                {
+                    var duplicateTypeNames = string.Join(", ", duplicateTypes.Select(type => type.FullName));
+                    var message = $"Duplicate seed type(s) detected: {duplicateTypeNames}.\n" +
+                                  "This usually means the same seed class was registered more than once.\n" +
+                                  "Possible causes:\n" +
+                                  "- Multiple calls to AddDataSeeding() for the same assembly\n" +
+                                  "- Overlapping assembly scans\n" +
+                                  "- Manual registration of seeds in addition to automatic scanning\n" +
+                                  "\nPlease review your dependency injection setup to ensure each seed type is only registered once.";
+
+                    throw new InvalidOperationException(message);
+                }
+
+                this.Seeds = seeds;
             }
 
             logger.LogDebug("{SeedsCount} seeds have been found and loaded", this.Seeds.Count);

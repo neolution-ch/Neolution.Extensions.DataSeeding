@@ -1,9 +1,12 @@
 ﻿namespace Neolution.Extensions.DataSeeding.Tests.Core.UnitTests
 {
+    using System;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Logging;
+    using Neolution.Extensions.DataSeeding.Abstractions;
     using Neolution.Extensions.DataSeeding.Tests.Common.Fakes.Services;
     using Neolution.Extensions.DataSeeding.Tests.Core.UnitTests.Fakes;
+    using Neolution.Extensions.DataSeeding.Tests.Core.UnitTests.Fakes.MultiTenantSeeds;
     using Shouldly;
     using Xunit;
     using Xunit.Abstractions;
@@ -45,6 +48,34 @@
 
             // Assert
             dataInitializerRun.ShouldBeTrue();
+        }
+
+        /// <summary>
+        /// Tests that duplicate seed registration throws an InvalidOperationException with a helpful message.
+        /// </summary>
+        [Fact]
+        public void DuplicateSeedRegistrationThrowsInvalidOperationException()
+        {
+            // Arrange
+            var services = this.CreateServiceCollection();
+
+            services.AddDataSeeding();
+
+            // Issue: SimpleSeed is already added because AddDataSeeding() scanned the assembly for ISeed implementations
+            services.AddTransient<ISeed, SimpleSeed>();
+
+            services.AddTransient<DataInitializerFake>();
+            var serviceProvider = services.BuildServiceProvider();
+
+            // Act & Assert - The exception should be thrown when the seeder is constructed (UseServiceProvider is called)
+            var exception = Should.Throw<InvalidOperationException>(() =>
+            {
+                serviceProvider.GetRequiredService<DataInitializerFake>();
+            });
+
+            exception.Message.ShouldContain("Duplicate seed type(s) detected");
+            exception.Message.ShouldContain("SimpleSeed");
+            exception.Message.ShouldContain("This usually means the same seed class was registered more than once.");
         }
 
         /// <summary>
