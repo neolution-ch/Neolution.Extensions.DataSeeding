@@ -1,47 +1,242 @@
 # DataSeeding
 
-## Introduction 
+## What's this about?
+
 From the [database seeding](https://en.wikipedia.org/wiki/Database_seeding) article in Wikipedia:
+
 > Database seeding is populating a database with an initial set of data. It's common to load seed data such as initial user accounts or dummy data upon initial setup of an application.
 
-The code needed to create an initial state of data for an application can get overwhelmingly large, even for smaller applications. This means that the source code file responsible for creating, generating, initializing, loading, transforming (...) your data, will eventually end up having thousands of lines of code and tons of different dependencies. When not properly organized, this could create maintainability issues for your application.
+We've all been there - your data seeding code starts simple but grows into a monster file with thousands of lines and complex dependencies. This library helps you split that mess into manageable chunks with proper dependency handling.
 
-This library aims to help developers to divide the whole data seeding logic of an application into small chunks of logic. 
+## Key Features
 
-## Getting Started
-In most use-cases there are only two relevant interfaces:
+- **Attribute-Based Dependencies**: Clean syntax using `[DependsOn(typeof(...))]` attributes
+- **Multi-Dependency Support**: Seeds can depend on multiple other seeds
+- **Circular Dependency Detection**: Catches circular dependencies with clear error messages
+- **Scoped Service Support**: Proper handling of scoped dependencies with lifetime management
+- **Topological Sorting**: Dependency resolution using Kahn's algorithm for execution order
+- **Service Lifetime Safety**: Prevents common DI issues like ObjectDisposedException
 
-### Add the functionality to the dependency injection container
-For Microsoft Dependency Injection, there is already an extension method built in:
+## Quick Start
 
-    services.AddDataSeeding(typeof(Startup).Assembly);
+### Add to dependency injection
 
-This configures DataSeeding to scan the passed assembly to look for `ISeed` implementations. All found implementations will then prepared and properly ordered for the data seeding. 
+For Microsoft Dependency Injection:
+
+```csharp
+services.AddDataSeeding();
+```
+
+This automatically scans the calling assembly for `ISeed` implementations and prepares them for ordered execution.
+
+#### Advanced Usage
+
+If your seeds are in a different assembly than the one calling the registration, use the explicit overload:
+
+```csharp
+services.AddDataSeeding(typeof(Startup).Assembly);
+```
+
+**Note**: The parameterless overload is preferred for most scenarios. Only use the assembly parameter when seeds are located in a different project/assembly.
 
 ### The `ISeed` interface
-The class that contains a chunk of the data seeding logic is called **seed**. To make the library pick up your seeds, they have to implement `ISeed` interface.
 
-In the `SeedAsync()` method you can add your data seeding logic. The seed will be instantiated by the dependency injection container, so you can use the constructor to inject services.
+Create seeds by implementing the `ISeed` interface and using the `[DependsOn]` attribute to declare dependencies:
 
-Sometimes, you might want a certain seed to be seeded before another one. This can be achieved by implementing the optional `DependsOn` property in the dependent seed. Make the property return the type of the seed you want to have seeded before the current seed. As soon as the `ISeeder` is resolved, the optimal order of the seeds will be determined.
-
-### The `ISeeder` interface
-The `ISeeder` interface can be resolved from the service provider. It contains the logic to find all seeds in a specified assembly and seed them in an appropriate order.
-    
-    public class DataInitializer
+```csharp
+[DependsOn(typeof(TenantSeed), typeof(RoleSeed))]
+public class UserSeed : ISeed
+{
+    public async Task SeedAsync()
     {
-        private readonly ISeeder seeder;
+        // Your seeding logic here
+    }
+}
+```
 
-        public DataInitializer(ISeeder seeder)
-        {
-            this.seeder = seeder;
-        }
+Seeds are instantiated by the dependency injection container, so you can inject services in the constructor, including scoped services.
 
-        public void Run()
-        {
-            this.seeder.SeedAsync();
-        }
+## Dependency Management
+
+### Defining Dependencies
+
+Use the `[DependsOn]` attribute to specify dependencies. For multiple dependencies, list them in the attribute:
+
+```csharp
+[DependsOn(typeof(TenantSeed), typeof(RoleSeed))]
+public class UserSeed : ISeed
+{
+    public Task SeedAsync()
+    {
+        // Your seeding logic here
+        return Task.CompletedTask;
+    }
+}
+```
+
+#### Single Dependency
+
+For seeds with only one dependency:
+
+```csharp
+[DependsOn(typeof(TenantSeed))]
+public class UserSeed : ISeed
+{
+    public Task SeedAsync()
+    {
+        // Your seeding logic here
+        return Task.CompletedTask;
+    }
+}
+```
+
+#### No Dependencies
+
+Seeds without dependencies don't need the attribute:
+
+```csharp
+public class TenantSeed : ISeed
+{
+    public Task SeedAsync()
+    {
+        // This seed has no dependencies
+        return Task.CompletedTask;
+    }
+}
+```
+
+### Scoped Service Injection
+
+The library handles scoped services properly:
+
+```csharp
+public class UserSeed : ISeed
+{
+    private readonly UserManager<User> userManager;
+    private readonly ApplicationDbContext context;
+    private readonly ILogger<UserSeed> logger;
+
+    public UserSeed(
+        UserManager<User> userManager, 
+        ApplicationDbContext context,
+        ILogger<UserSeed> logger)
+    {
+        this.userManager = userManager;
+        this.context = context;
+        this.logger = logger;
     }
 
-### Samples
-Check out the sample console application and the unit test in the repository.
+    public async Task SeedAsync()
+    {
+        var user = new User { UserName = "admin" };
+        await this.userManager.CreateAsync(user, "Password123!");
+    }
+}
+```
+
+**Benefits:**
+
+- Each seed gets a fresh DI scope
+- Scoped services are automatically disposed after execution
+- Prevents ObjectDisposedException and scope validation errors
+
+### The `ISeeder` interface
+
+Resolve `ISeeder` from the service provider to execute seeds:
+
+```csharp
+public class DataInitializer
+{
+    private readonly ISeeder seeder;
+
+    public DataInitializer(ISeeder seeder)
+    {
+        this.seeder = seeder;
+    }
+
+    public async Task RunAsync()
+    {
+        await this.seeder.SeedAsync();
+    }
+}
+```
+
+## Features
+
+### Circular Dependency Detection
+
+The library detects circular dependencies and throws clear error messages:
+
+```csharp
+// This will throw an InvalidOperationException
+[DependsOn(typeof(SeedB))]
+public class SeedA : ISeed 
+{
+    public Task SeedAsync() => Task.CompletedTask;
+}
+
+[DependsOn(typeof(SeedA))] // Circular!
+public class SeedB : ISeed 
+{
+    public Task SeedAsync() => Task.CompletedTask;
+}
+```
+
+Detects all types of cycles:
+
+- Simple cycles: A → B → A
+- Complex cycles: A → B → C → A  
+- Multi-level cycles: A → B → C → D → A
+
+### Complex Dependencies
+
+Seeds can have multiple dependencies:
+
+```csharp
+[DependsOn(typeof(TenantSeed), typeof(RoleSeed), typeof(PermissionSeed))]
+public class ComplexSeed : ISeed
+{
+    // Executes only after ALL dependencies complete
+    public async Task SeedAsync() { /* ... */ }
+}
+```
+
+## Example Usage
+
+```csharp
+// Base seed with no dependencies
+public class UserRolesSeed : ISeed
+{
+    public Task SeedAsync()
+    {
+        // Seed user roles
+        return Task.CompletedTask;
+    }
+}
+
+// Single dependency
+[DependsOn(typeof(UserRolesSeed))]
+public class UsersSeed : ISeed
+{
+    public Task SeedAsync()
+    {
+        // Seed users (requires roles first)
+        return Task.CompletedTask;
+    }
+}
+
+// Multiple dependencies
+[DependsOn(typeof(UsersSeed), typeof(PermissionsSeed))]
+public class UserPermissionsSeed : ISeed
+{
+    public Task SeedAsync()
+    {
+        // Seed user permissions (requires both users and permissions)
+        return Task.CompletedTask;
+    }
+}
+```
+
+## Demo
+
+Check out the [demo project](./Neolution.Extensions.DataSeeding.Demo) for a complete CMS seeding example with 13 interconnected seeds.
